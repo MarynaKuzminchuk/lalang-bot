@@ -1,0 +1,30 @@
+{
+  "name": "lalang-bot",
+  "version": "1.0.0",
+  "description": "To run the project, execute the following command in your terminal:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarinaKuzminchuk/lalang-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MarinaKuzminchuk/lalang-bot/issues"
+  },
+  "homepage": "https://github.com/MarinaKuzminchuk/lalang-bot#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.85.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}
