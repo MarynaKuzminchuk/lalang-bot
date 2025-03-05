@@ -8,21 +8,22 @@ const openai = new OpenAI({
 });
 
 export async function generateTranslationTask(): Promise<string> {
-  return await generateGPTRequest('Come up with and give me a sentence in Russian for further translation.');
+  return await generateGPTRequest('Come up with and give me a sentence on any topic in Russian for further translation. Just output the sentence directly.');
 }
 
 export async function checkTranslation(original: string, userTranslation: string): Promise<string> {
   const prompt = `
   You are a German language teacher.  
   Your task is to check the translation from Russian to German.  
-  If there are mistakes, explain them and suggest the correct version.  
+  If there are mistakes, explain them in Russian and suggest the correct version.  
+  Original: "${original}" - take this for analysis, but do not display this field
+  User's Translation: "${userTranslation}" - take this for analysis, but do not display this field
+
   Provide the feedback in this format:
   
-  Original (RU): "${original}"  
-  User's Translation (DE): "${userTranslation}"  
-  
+  Corrected version: ...
+
   Translation analysis: ...  
-  Corrected version (if needed): ...
   `;
 
   return await generateGPTRequest(prompt);
