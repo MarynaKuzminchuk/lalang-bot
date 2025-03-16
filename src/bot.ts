@@ -76,19 +76,22 @@ export function initTelegramBot() {
       userState.isWaitingForTranslation = false;
 
       try {
-        const checkResult = await checkTranslation(userState.sentence, text);
-        await bot.sendMessage(chatId, checkResult);
+        const analysis = await checkTranslation(userState.sentence, text);
+        const [messageToStudent, correctedVersion, correctGrammar, incorrectGrammar, correctVocabulary, incorrectVocabulary] = analysis.split("---");
+        await bot.sendMessage(chatId, messageToStudent);
 
-        saveTranslation(chatId, userState.sentence, text, checkResult.split('\n')[0], checkResult, taskId);
+        saveTranslation(chatId, userState.sentence, text, correctedVersion, taskId);
 
-        let errorType: "grammar" | "vocabulary" | null = null;
+        console.log(analysis);
 
-        if (checkResult.toLowerCase().includes("ошибка")) {
-          errorType = checkResult.toLowerCase().includes("грамматика") ? "grammar" : "vocabulary";
-          saveStudentProgress(chatId, errorType, userState.sentence, false, taskId);
-        } else {
-          saveStudentProgress(chatId, "grammar", userState.sentence, true, taskId);
-        }
+        // let errorType: "grammar" | "vocabulary" | null = null;
+
+        // if (checkResult.toLowerCase().includes("ошибка")) {
+        //   errorType = checkResult.toLowerCase().includes("грамматика") ? "grammar" : "vocabulary";
+        //   saveStudentProgress(chatId, errorType, userState.sentence, false, taskId);
+        // } else {
+        //   saveStudentProgress(chatId, "grammar", userState.sentence, true, taskId);
+        // }
 
         sendTaskButton(chatId);
       } catch (error) {

@@ -9,7 +9,6 @@ db.exec(`
     original TEXT NOT NULL,
     user_translation TEXT NOT NULL,
     corrected_translation TEXT NOT NULL,
-    analysis TEXT NOT NULL,
     task_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
@@ -27,7 +26,7 @@ db.exec(`
 
 export function saveTranslation(
   studentId: number, original: string, userTranslation: string,
-  correctedTranslation: string, analysis: string, taskId: number
+  correctedTranslation: string, taskId: number
 ) {
   const existing = db.prepare("SELECT id FROM translations WHERE task_id = ?").get(taskId);
   if (existing) {
@@ -36,10 +35,10 @@ export function saveTranslation(
   }
 
   const stmt = db.prepare(`
-    INSERT INTO translations (student_id, original, user_translation, corrected_translation, analysis, task_id)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO translations (student_id, original, user_translation, corrected_translation, task_id)
+    VALUES (?, ?, ?, ?, ?)
   `);
-  stmt.run(studentId, original, userTranslation, correctedTranslation, analysis, taskId);
+  stmt.run(studentId, original, userTranslation, correctedTranslation, taskId);
 }
 
 export function getLastTranslations(studentId: number, limit = 3) {
