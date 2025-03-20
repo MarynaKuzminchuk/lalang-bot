@@ -29,3 +29,13 @@ if (!telegramBotToken) {
 }
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotController = new TelegramBotController(bot, chatGptService, translationRepository);
+bot.onText(/\/start/, (msg) => {
+  telegramBotController.start(msg);
+});
+bot.on('callback_query', async (query) => {
+  telegramBotController.handleCallbackQuery(query);
+});
+bot.on('message', async (msg) => {
+  telegramBotController.handleIncomingMessage(msg);
+});
+console.log('Telegram bot has been started via Long Polling');

@@ -9,9 +9,7 @@ export class TelegramBotController {
     private bot: TelegramBot,
     private chatGptService: ChatGPTService,
     private translationRepository: TranslationRepository
-  ) {
-    this.initializeBot();
-  }
+  ) {}
 
   private sendTaskButton(chatId: number): void {
     const keyboard = {
@@ -22,33 +20,32 @@ export class TelegramBotController {
     this.bot.sendMessage(chatId, 'Click “Give assignment” to get a new exercise.', keyboard);
   }
 
-  private initializeBot(): void {
-    // Handle /start command
-    this.bot.onText(/\/start/, (msg) => {
-      const chatId = msg.chat.id;
-      this.bot.sendMessage(
-        chatId,
-        'Welcome to Lalang, a chatbot for learning a foreign language.\n\n' +
-          'You will be given tasks to translate and after you will get a breakdown of your answer.\n\nHave fun!'
-      );
-      this.sendTaskButton(chatId);
-    });
+  // Handle /start command
+  public start(msg: TelegramBot.Message) {
+    const chatId = msg.chat.id;
+    this.bot.sendMessage(
+      chatId,
+      'Welcome to Lalang, a chatbot for learning a foreign language.\n\n' +
+        'You will be given tasks to translate and after you will get a breakdown of your answer.\n\nHave fun!'
+    );
+    this.sendTaskButton(chatId);
+  }
 
-    // Handle callback queries (e.g., button clicks)
-    this.bot.on('callback_query', async (query) => {
-      if (!query.data) return;
-      const chatId = query.message?.chat.id;
-      if (!chatId) return;
+  // Handle callback queries (e.g., button clicks)
+  public async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
+    if (!query.data) return;
+    const chatId = query.message?.chat.id;
+    if (!chatId) return;
 
-      if (query.data === 'give_task') {
-        await this.handleAssignmentRequest(chatId);
-        this.bot.answerCallbackQuery(query.id);
-      }
-    });
+    if (query.data === 'give_task') {
+      await this.handleAssignmentRequest(chatId);
+      this.bot.answerCallbackQuery(query.id);
+    }
+  }
 
-    // Handle incoming messages (user translations)
-    this.bot.on('message', async (msg) => {
-      const chatId = msg.chat.id;
+  // Handle incoming messages (user translations)
+  public async handleIncomingMessage(msg: TelegramBot.Message) {
+    const chatId = msg.chat.id;
       const text = msg.text || '';
       const taskId = msg.message_id ?? -1;
 
@@ -92,9 +89,6 @@ export class TelegramBotController {
           this.sendTaskButton(chatId);
         }
       }
-    });
-
-    console.log('Telegram bot has been started via Long Polling');
   }
 
   private async handleAssignmentRequest(chatId: number): Promise<void> {
