@@ -2,24 +2,15 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { generateGPTRequest } from './chatgptService';
 import { initTelegramBot } from './bot';
+import TelegramBot from 'node-telegram-bot-api';
 
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token) {
+  throw new Error('TELEGRAM_BOT_TOKEN is missing in .env');
+}
 
-initTelegramBot();
+const bot = new TelegramBot(token, { polling: true });
 
-app.get('/', async (req, res) => {
-  try {
-    const answer = await generateGPTRequest('What is the weather in Berlin today?');
-    res.send(answer || 'No response from GPT');
-  } catch (error) {
-    console.error('ChatGPT API request error:', error);
-    res.status(500).send('ChatGPT API response error');
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+initTelegramBot(bot);

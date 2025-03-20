@@ -5,13 +5,7 @@ import { saveTranslation, getLastTranslations, saveStudentProgress, getStudentPr
 
 dotenv.config();
 
-export function initTelegramBot() {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) {
-    throw new Error('TELEGRAM_BOT_TOKEN is missing in .env');
-  }
-
-  const bot = new TelegramBot(token, { polling: true });
+export function initTelegramBot(bot: TelegramBot) {
   const userStates: Record<number, { sentence: string; isWaitingForTranslation: boolean }> = {};
 
   function sendTaskButton(chatId: number) {
