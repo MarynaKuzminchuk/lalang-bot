@@ -1,11 +1,8 @@
 import TelegramBot from 'node-telegram-bot-api';
-import dotenv from 'dotenv';
-import { saveTranslation, getLastTranslations, saveStudentProgress, getStudentProgress } from './database';
+import { TranslationRepository } from './translationRepository';
 import { ChatGPTService } from './chatgptService';
 
-dotenv.config();
-
-export function initTelegramBot(bot: TelegramBot, chatGptService: ChatGPTService) {
+export function initTelegramBot(bot: TelegramBot, chatGptService: ChatGPTService, translationRepository: TranslationRepository) {
   const userStates: Record<number, { sentence: string; isWaitingForTranslation: boolean }> = {};
 
   function sendTaskButton(chatId: number) {
@@ -74,7 +71,7 @@ export function initTelegramBot(bot: TelegramBot, chatGptService: ChatGPTService
         const [messageToStudent, correctedVersion, correctGrammar, incorrectGrammar, correctVocabulary, incorrectVocabulary] = analysis.split("---");
         await bot.sendMessage(chatId, messageToStudent);
 
-        saveTranslation(chatId, userState.sentence, text, correctedVersion, taskId);
+        translationRepository.saveTranslation(chatId, userState.sentence, text, correctedVersion, taskId);
 
         console.log(analysis);
 
