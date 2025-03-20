@@ -1,34 +1,25 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { TranslationRepository } from './translationRepository';
 import { ChatGPTService } from './chatgptService';
+import { TelegramBotClient } from './telegramBotClient';
 
 export class TelegramBotController {
   private userStates: Record<number, { sentence: string; isWaitingForTranslation: boolean }> = {};
 
   constructor(
-    private bot: TelegramBot,
+    private telegramBotClient: TelegramBotClient,
     private chatGptService: ChatGPTService,
     private translationRepository: TranslationRepository
   ) {}
 
-  private sendTaskButton(chatId: number): void {
-    const keyboard = {
-      reply_markup: {
-        inline_keyboard: [[{ text: 'Give assignment', callback_data: 'give_task' }]],
-      },
-    };
-    this.bot.sendMessage(chatId, 'Click “Give assignment” to get a new exercise.', keyboard);
-  }
-
   // Handle /start command
   public start(msg: TelegramBot.Message) {
     const chatId = msg.chat.id;
-    this.bot.sendMessage(
-      chatId,
+    this.telegramBotClient.sendMessage(chatId,
       'Welcome to Lalang, a chatbot for learning a foreign language.\n\n' +
         'You will be given tasks to translate and after you will get a breakdown of your answer.\n\nHave fun!'
     );
-    this.sendTaskButton(chatId);
+    this.telegramBotClient.sendTaskButton(chatId);
   }
 
   // Handle callback queries (e.g., button clicks)
@@ -39,7 +30,7 @@ export class TelegramBotController {
 
     if (query.data === 'give_task') {
       await this.handleAssignmentRequest(chatId);
-      this.bot.answerCallbackQuery(query.id);
+      this.telegramBotClient.answerCallbackQuery(query);
     }
   }
 
@@ -68,7 +59,7 @@ export class TelegramBotController {
             correctVocabulary,
             incorrectVocabulary
           ] = analysis.split('---');
-          await this.bot.sendMessage(chatId, messageToStudent);
+          await this.telegramBotClient.sendMessage(chatId, messageToStudent);
 
           this.translationRepository.saveTranslation(
             chatId,
@@ -82,11 +73,11 @@ export class TelegramBotController {
 
           // Optional: Handle student progress logic here
 
-          this.sendTaskButton(chatId);
+          this.telegramBotClient.sendTaskButton(chatId);
         } catch (error) {
           console.error('Check result error:', error);
-          this.bot.sendMessage(chatId, 'Check result error.');
-          this.sendTaskButton(chatId);
+          this.telegramBotClient.sendMessage(chatId, 'Check result error.');
+          this.telegramBotClient.sendTaskButton(chatId);
         }
       }
   }
@@ -96,18 +87,18 @@ export class TelegramBotController {
       const sentence = await this.chatGptService.generateTranslationTask();
 
       if (!sentence) {
-        this.bot.sendMessage(chatId, 'Assignment generation error.');
+        this.telegramBotClient.sendMessage(chatId, 'Assignment generation error.');
         return;
       }
 
       this.userStates[chatId] = { sentence, isWaitingForTranslation: true };
-      this.bot.sendMessage(
+      this.telegramBotClient.sendMessage(
         chatId,
         `Translate into German:\n\n"${sentence}"\n\n(Enter the translation below.)`
       );
     } catch (error) {
       console.error('Assignment generation error:', error);
-      this.bot.sendMessage(chatId, 'Assignment generation error.');
+      this.telegramBotClient.sendMessage(chatId, 'Assignment generation error.');
     }
   }
 }

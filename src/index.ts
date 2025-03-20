@@ -6,6 +6,7 @@ import { ChatGPTService } from './chatgptService';
 import Database from 'better-sqlite3';
 import { TranslationRepository } from './translationRepository';
 import { readFileSync } from 'fs';
+import { TelegramBotClient } from './telegramBotClient';
 
 dotenv.config();
 
@@ -28,7 +29,9 @@ if (!telegramBotToken) {
   throw new Error('TELEGRAM_BOT_TOKEN is missing in .env');
 }
 const bot = new TelegramBot(telegramBotToken, { polling: true });
-const telegramBotController = new TelegramBotController(bot, chatGptService, translationRepository);
+const telegramBotClient = new TelegramBotClient(bot);
+
+const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
 });
