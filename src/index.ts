@@ -5,6 +5,7 @@ import OpenAI from 'openai';
 import { ChatGPTService } from './chatgptService';
 import Database from 'better-sqlite3';
 import { TranslationRepository } from './translationRepository';
+import { readFileSync } from 'fs';
 
 dotenv.config();
 
@@ -18,6 +19,8 @@ const openai = new OpenAI({
 const chatGptService = new ChatGPTService(openai);
 
 const db = new Database('database.sqlite');
+const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
+db.exec(createDbSchemaScript);
 const translationRepository = new TranslationRepository(db);
 
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;

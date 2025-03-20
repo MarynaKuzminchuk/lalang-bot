@@ -1,4 +1,4 @@
-CREATE TABLE `lalang`.`translations` (
+CREATE TABLE IF NOT EXISTS translations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   student_id INTEGER NOT NULL,
   original TEXT NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE `lalang`.`translations` (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE `lalang`.`student_progress` (
+CREATE TABLE IF NOT EXISTS student_progress (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   type TEXT CHECK (type IN ('grammar', 'vocabulary')) NOT NULL,
   name TEXT NOT NULL,
