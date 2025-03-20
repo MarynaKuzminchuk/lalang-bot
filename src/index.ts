@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initTelegramBot } from './bot';
+import { TelegramBotController } from './telegramBotController';
 import TelegramBot from 'node-telegram-bot-api';
 import OpenAI from 'openai';
 import { ChatGPTService } from './chatgptService';
@@ -28,4 +28,4 @@ if (!telegramBotToken) {
   throw new Error('TELEGRAM_BOT_TOKEN is missing in .env');
 }
 const bot = new TelegramBot(telegramBotToken, { polling: true });
-initTelegramBot(bot, chatGptService, translationRepository);
+const telegramBotController = new TelegramBotController(bot, chatGptService, translationRepository);
