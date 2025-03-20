@@ -1,11 +1,11 @@
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
-import { generateTranslationTask, checkTranslation } from './chatgptService';
 import { saveTranslation, getLastTranslations, saveStudentProgress, getStudentProgress } from './database';
+import { ChatGPTService } from './chatgptService';
 
 dotenv.config();
 
-export function initTelegramBot(bot: TelegramBot) {
+export function initTelegramBot(bot: TelegramBot, chatGptService: ChatGPTService) {
   const userStates: Record<number, { sentence: string; isWaitingForTranslation: boolean }> = {};
 
   function sendTaskButton(chatId: number) {
@@ -40,7 +40,7 @@ export function initTelegramBot(bot: TelegramBot) {
 
   async function handleAssignmentRequest(chatId: number) {
     try {
-      const sentence = await generateTranslationTask();
+      const sentence = await chatGptService.generateTranslationTask();
 
       if (!sentence) {
         bot.sendMessage(chatId, 'Assignment generation error.');
@@ -70,7 +70,7 @@ export function initTelegramBot(bot: TelegramBot) {
       userState.isWaitingForTranslation = false;
 
       try {
-        const analysis = await checkTranslation(userState.sentence, text);
+        const analysis = await chatGptService.checkTranslation(userState.sentence, text);
         const [messageToStudent, correctedVersion, correctGrammar, incorrectGrammar, correctVocabulary, incorrectVocabulary] = analysis.split("---");
         await bot.sendMessage(chatId, messageToStudent);
 
