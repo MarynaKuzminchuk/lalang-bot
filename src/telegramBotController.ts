@@ -4,7 +4,7 @@ import { ChatGPTService } from './chatgptService';
 import { TelegramBotClient } from './telegramBotClient';
 
 export class TelegramBotController {
-  private userStates: Record<number, { sentence: string; isWaitingForTranslation: boolean }> = {};
+  private userStates: Record<number, { sentence: string; topic?: string; isWaitingForTranslation: boolean }> = {};
 
   constructor(
     private telegramBotClient: TelegramBotClient,
@@ -37,49 +37,73 @@ export class TelegramBotController {
   // Handle incoming messages (user translations)
   public async handleIncomingMessage(msg: TelegramBot.Message) {
     const chatId = msg.chat.id;
-      const text = msg.text || '';
-      const taskId = msg.message_id ?? -1;
+    const text = msg.text || '';
+    const taskId = msg.message_id ?? -1;
 
-      if (taskId === -1) {
-        console.warn("⚠️ Missing save: no taskId!");
-        return;
-      }
+    if (taskId === -1) {
+      console.warn("⚠️ Missing save: no taskId!");
+      return;
+    }
 
-      const userState = this.userStates[chatId];
-      if (userState && userState.isWaitingForTranslation) {
-        userState.isWaitingForTranslation = false;
+    const userState = this.userStates[chatId];
+    if (userState && userState.isWaitingForTranslation) {
+      userState.isWaitingForTranslation = false;
 
-        try {
-          const analysis = await this.chatGptService.checkTranslation(userState.sentence, text);
-          const [
-            messageToStudent,
-            correctedVersion,
-            correctGrammar,
-            incorrectGrammar,
-            correctVocabulary,
-            incorrectVocabulary
-          ] = analysis.split('---');
-          await this.telegramBotClient.sendMessage(chatId, messageToStudent);
+      try {
+        const analysis = await this.chatGptService.checkTranslation(userState.sentence, text);
+        const [
+          messageToStudent,
+          correctedVersion,
+          correctGrammar,
+          incorrectGrammar,
+          correctVocabulary,
+          incorrectVocabulary
+        ] = analysis.split('---');
+        await this.telegramBotClient.sendMessage(chatId, messageToStudent);
 
-          this.translationRepository.saveTranslation(
-            chatId,
-            userState.sentence,
-            text,
-            correctedVersion,
-            taskId
-          );
+        const translationId = this.translationRepository.saveTranslation(
+          chatId,
+          userState.sentence,
+          text,
+          correctedVersion,
+          taskId
+        );
+
+        this.translationRepository.saveTranslationAnalysis(
+          translationId,
+          correctGrammar,
+          incorrectGrammar,
+          correctVocabulary,
+          incorrectVocabulary
+        );
+
+        const grammarErrors = incorrectGrammar.trim() ? 1 : 0;
+        const vocabularyErrors = incorrectVocabulary.trim() ? 1 : 0;
+        const grammarSuccess = incorrectGrammar.trim() ? 0 : 1;
+        const vocabularySuccess = incorrectVocabulary.trim() ? 0 : 1;
+
+        const topic = userState.topic || 'default_topic';
+
+        this.translationRepository.updateStudentTopicProgress(
+          chatId,
+          topic,
+          grammarErrors,
+          vocabularyErrors,
+          grammarSuccess,
+          vocabularySuccess
+        );
 
           console.log(analysis);
 
           // Optional: Handle student progress logic here
 
-          this.telegramBotClient.sendTaskButton(chatId);
-        } catch (error) {
-          console.error('Check result error:', error);
-          this.telegramBotClient.sendMessage(chatId, 'Check result error.');
-          this.telegramBotClient.sendTaskButton(chatId);
-        }
+        this.telegramBotClient.sendTaskButton(chatId);
+      } catch (error) {
+        console.error('Check result error:', error);
+        this.telegramBotClient.sendMessage(chatId, 'Check result error.');
+        this.telegramBotClient.sendTaskButton(chatId);
       }
+    }
   }
 
   private async handleAssignmentRequest(chatId: number): Promise<void> {
@@ -91,7 +115,7 @@ export class TelegramBotController {
         return;
       }
 
-      this.userStates[chatId] = { sentence, isWaitingForTranslation: true };
+      this.userStates[chatId] = { sentence, topic: 'default_topic', isWaitingForTranslation: true };
       this.telegramBotClient.sendMessage(
         chatId,
         `Translate into German:\n\n"${sentence}"\n\n(Enter the translation below.)`

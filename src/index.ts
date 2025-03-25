@@ -20,6 +20,8 @@ const openai = new OpenAI({
 const chatGptService = new ChatGPTService(openai);
 
 const db = new Database('database.sqlite');
+const rows = db.prepare('SELECT * FROM translation_analysis').get();
+console.log(rows);
 const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
 db.exec(createDbSchemaScript);
 const translationRepository = new TranslationRepository(db);
