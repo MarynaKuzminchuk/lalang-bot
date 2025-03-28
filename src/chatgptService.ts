@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 
-const GRAMMAR_DE: string = `Großschreibung der Substantive, Grammatisches Geschlecht (Genus), 
+export const GRAMMAR_DE: string = `Großschreibung der Substantive, Grammatisches Geschlecht (Genus), 
 Nominativ, Akkusativ, Dativ, Genitiv, Schwache Maskulina (N-Deklination), Pluralbildung, 
 Bestimmter Artikel, Unbestimmter Artikel, Negativartikel (kein), Starke Adjektivdeklination, 
 Gemischte Adjektivdeklination, Schwache Adjektivdeklination, Komparativ und Superlativ, 
@@ -19,8 +19,13 @@ export class ChatGPTService {
 
   constructor(private openai: OpenAI) {}
 
-  public async generateTranslationTask(): Promise<string> {
-    const prompt = 'Come up with and give me a sentence on any topic in Russian for further translation. Just output the sentence directly.';
+  public async generateTranslationTask(topic?: string): Promise<string> {
+    let prompt: string;
+    if (topic) {
+      prompt = `Please generate a sentence in Russian that focuses on the grammar topic: "${topic}". Just output the sentence directly.`;
+    } else {
+      prompt = 'Come up with and give me a sentence on any topic in Russian for further translation. Just output the sentence directly.';
+    }
     return await this.generateGPTRequest(prompt);
   }
 

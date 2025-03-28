@@ -2,6 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { TranslationRepository } from './translationRepository';
 import { ChatGPTService } from './chatgptService';
 import { TelegramBotClient } from './telegramBotClient';
+import { GRAMMAR_DE } from './chatgptService';
 
 export class TelegramBotController {
   private userStates: Record<number, { sentence: string; topic?: string; isWaitingForTranslation: boolean }> = {};
@@ -86,7 +87,7 @@ export class TelegramBotController {
 
         this.translationRepository.updateStudentTopicProgress(
           chatId,
-          topic,
+          userState.topic || 'default_topic',
           grammarErrors,
           vocabularyErrors,
           grammarSuccess,
@@ -108,17 +109,32 @@ export class TelegramBotController {
 
   private async handleAssignmentRequest(chatId: number): Promise<void> {
     try {
-      const sentence = await this.chatGptService.generateTranslationTask();
-
+      const allTopics = GRAMMAR_DE.split(',').map(topic => topic.trim());
+      const attemptedTopics = this.translationRepository.getAttemptedTopics(chatId);
+      const notAttemptedTopics = allTopics.filter(topic => !attemptedTopics.includes(topic));
+      
+      let selectedTopic: string;
+      if (notAttemptedTopics.length > 0) {
+        selectedTopic = notAttemptedTopics[Math.floor(Math.random() * notAttemptedTopics.length)];
+      } else {
+        const weakTopics = this.translationRepository.getWeakTopics(chatId);
+        if (weakTopics.length > 0) {
+          selectedTopic = weakTopics[Math.floor(Math.random() * weakTopics.length)].topic;
+        } else {
+          selectedTopic = allTopics[Math.floor(Math.random() * allTopics.length)];
+        }
+      }
+      
+      const sentence = await this.chatGptService.generateTranslationTask(selectedTopic);
       if (!sentence) {
         this.telegramBotClient.sendMessage(chatId, 'Assignment generation error.');
         return;
       }
 
-      this.userStates[chatId] = { sentence, topic: 'default_topic', isWaitingForTranslation: true };
+      this.userStates[chatId] = { sentence, topic: selectedTopic, isWaitingForTranslation: true };
       this.telegramBotClient.sendMessage(
         chatId,
-        `Translate into German:\n\n"${sentence}"\n\n(Enter the translation below.)`
+        `Translate into German (Topic: ${selectedTopic}):\n\n"${sentence}"\n\n(Enter your translation below.)`
       );
     } catch (error) {
       console.error('Assignment generation error:', error);

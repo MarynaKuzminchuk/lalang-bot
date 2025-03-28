@@ -52,6 +52,21 @@ export class TranslationRepository {
     stmt.run(studentId, type, name, correct, taskId);
   }
 
+  public getWeakTopics(studentId: number): Array<{ topic: string; total_success: number }> {
+    const stmt = this.db.prepare(`
+      SELECT topic, (grammar_success + vocabulary_success) as total_success
+      FROM student_topic_progress
+      WHERE student_id = ? AND (grammar_success + vocabulary_success) < 3
+    `);
+    return stmt.all(studentId) as Array<{ topic: string; total_success: number }>;
+  }
+  
+  public getAttemptedTopics(studentId: number): string[] {
+    const stmt = this.db.prepare(`SELECT topic FROM student_topic_progress WHERE student_id = ?`);
+    const rows = stmt.all(studentId) as Array<{ topic: string }>;
+    return rows.map(row => row.topic);
+  }
+
   public getStudentProgress(studentId: number): Array<{
     count: number;
     correct_count: number;
