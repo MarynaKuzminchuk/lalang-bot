@@ -7,6 +7,7 @@ import Database from 'better-sqlite3';
 import { TranslationRepository } from './translationRepository';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
+import { ChatStateRepository } from './chatStateRepository';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ console.log(rows);
 const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
 db.exec(createDbSchemaScript);
 const translationRepository = new TranslationRepository(db);
+const chatStateRepository = new ChatStateRepository(db);
 
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!telegramBotToken) {
@@ -33,7 +35,7 @@ if (!telegramBotToken) {
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
-const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository);
+const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository, chatStateRepository);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
 });

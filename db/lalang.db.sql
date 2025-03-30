@@ -30,3 +30,11 @@ CREATE TABLE IF NOT EXISTS student_topic_progress (
   last_attempted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(student_id, topic)
 );
+
+CREATE TABLE IF NOT EXISTS chat_state (
+  chat_id INTEGER PRIMARY KEY,
+  sentence TEXT,
+  topic TEXT,
+  is_waiting_for_translation BOOLEAN,
+  UNIQUE(chat_id)
+);

@@ -3,14 +3,15 @@ import { TranslationRepository } from './translationRepository';
 import { ChatGPTService } from './chatgptService';
 import { TelegramBotClient } from './telegramBotClient';
 import { GRAMMAR_DE } from './chatgptService';
+import { ChatStateRepository } from './chatStateRepository';
 
 export class TelegramBotController {
-  private userStates: Record<number, { sentence: string; topic?: string; isWaitingForTranslation: boolean }> = {};
 
   constructor(
     private telegramBotClient: TelegramBotClient,
     private chatGptService: ChatGPTService,
-    private translationRepository: TranslationRepository
+    private translationRepository: TranslationRepository,
+    private chatStateRepository: ChatStateRepository
   ) {}
 
   // Handle /start command
@@ -46,12 +47,12 @@ export class TelegramBotController {
       return;
     }
 
-    const userState = this.userStates[chatId];
-    if (userState && userState.isWaitingForTranslation) {
-      userState.isWaitingForTranslation = false;
+    const chatState = this.chatStateRepository.getChatState(chatId);
+    if (chatState && chatState.is_waiting_for_translation) {
+      chatState.is_waiting_for_translation = false;
 
       try {
-        const analysis = await this.chatGptService.checkTranslation(userState.sentence, text);
+        const analysis = await this.chatGptService.checkTranslation(chatState.sentence, text);
         const [
           messageToStudent,
           correctedVersion,
@@ -64,7 +65,7 @@ export class TelegramBotController {
 
         const translationId = this.translationRepository.saveTranslation(
           chatId,
-          userState.sentence,
+          chatState.sentence,
           text,
           correctedVersion,
           taskId
@@ -83,11 +84,11 @@ export class TelegramBotController {
         const grammarSuccess = incorrectGrammar.trim() ? 0 : 1;
         const vocabularySuccess = incorrectVocabulary.trim() ? 0 : 1;
 
-        const topic = userState.topic || 'default_topic';
+        const topic = chatState.topic || 'default_topic';
 
         this.translationRepository.updateStudentTopicProgress(
           chatId,
-          userState.topic || 'default_topic',
+          chatState.topic || 'default_topic',
           grammarErrors,
           vocabularyErrors,
           grammarSuccess,
@@ -131,7 +132,12 @@ export class TelegramBotController {
         return;
       }
 
-      this.userStates[chatId] = { sentence, topic: selectedTopic, isWaitingForTranslation: true };
+      this.chatStateRepository.saveChatState({
+        chat_id: chatId,
+        sentence: sentence,
+        topic: selectedTopic,
+        is_waiting_for_translation: true
+      });
       this.telegramBotClient.sendMessage(
         chatId,
         `Translate into German (Topic: ${selectedTopic}):\n\n"${sentence}"\n\n(Enter your translation below.)`
