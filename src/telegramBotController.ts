@@ -83,12 +83,11 @@ export class TelegramBotController {
         const vocabularyErrors = incorrectVocabulary.trim() ? 1 : 0;
         const grammarSuccess = incorrectGrammar.trim() ? 0 : 1;
         const vocabularySuccess = incorrectVocabulary.trim() ? 0 : 1;
-
         const topic = chatState.topic || 'default_topic';
 
         this.translationRepository.updateStudentTopicProgress(
           chatId,
-          chatState.topic || 'default_topic',
+          topic,
           grammarErrors,
           vocabularyErrors,
           grammarSuccess,
