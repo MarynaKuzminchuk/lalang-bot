@@ -33,25 +33,6 @@ export class TranslationRepository {
     return stmt.all(studentId, limit);
   }
 
-  public saveStudentProgress(
-    studentId: number,
-    type: "grammar" | "vocabulary",
-    name: string,
-    correct: boolean,
-    taskId: number
-  ): void {
-    if (!studentId || !taskId) {
-      console.error("❌ Error: studentId or taskId are empty!", { studentId, taskId });
-      return;
-    }
-
-    const stmt = this.db.prepare(`
-      INSERT INTO student_progress (student_id, type, name, correct, task_id)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    stmt.run(studentId, type, name, correct, taskId);
-  }
-
   public getWeakTopics(studentId: number): Array<{ topic: string; total_success: number }> {
     const stmt = this.db.prepare(`
       SELECT topic, (grammar_success + vocabulary_success) as total_success
@@ -65,27 +46,6 @@ export class TranslationRepository {
     const stmt = this.db.prepare(`SELECT topic FROM student_topic_progress WHERE student_id = ?`);
     const rows = stmt.all(studentId) as Array<{ topic: string }>;
     return rows.map(row => row.topic);
-  }
-
-  public getStudentProgress(studentId: number): Array<{
-    count: number;
-    correct_count: number;
-    type: string;
-    name: string;
-  }> {
-    const stmt = this.db.prepare(`
-      SELECT type, name, COUNT(*) as count, SUM(correct) as correct_count 
-      FROM student_progress 
-      WHERE student_id = ? 
-      GROUP BY type, name 
-      ORDER BY count DESC
-    `);
-    return stmt.all(studentId) as Array<{
-      count: number;
-      correct_count: number;
-      type: string;
-      name: string;
-    }>;
   }
   
   public saveTranslationAnalysis(
