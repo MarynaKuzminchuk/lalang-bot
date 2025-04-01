@@ -8,6 +8,7 @@ import { TranslationRepository } from './translationRepository';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
+import { StaticDataRepository } from './staticDataRepository';
 
 dotenv.config();
 
@@ -21,10 +22,22 @@ const openai = new OpenAI({
 const chatGptService = new ChatGPTService(openai);
 
 const db = new Database('database.sqlite');
-const rows = db.prepare('SELECT * FROM translation_analysis').get();
-console.log(rows);
 const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
 db.exec(createDbSchemaScript);
+
+const rows = db.prepare('SELECT * FROM translation_analysis').all();
+console.log(rows);
+
+const staticDataRepository = new StaticDataRepository(db);
+const grammarJsonData = readFileSync('db/grammar.json', 'utf-8');
+const grammarData = JSON.parse(grammarJsonData) as Array<{
+  language: string;
+  topic: string;
+  level: string;
+  level_number: number;
+}>;
+staticDataRepository.saveGrammarData(grammarData);
+
 const translationRepository = new TranslationRepository(db);
 const chatStateRepository = new ChatStateRepository(db);
 
