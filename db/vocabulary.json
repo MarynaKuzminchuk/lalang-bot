@@ -1,0 +1,45 @@
+[
+  { "language": "DE", "topic": "Familie und Beziehungen", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Familie und Beziehungen", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Familie und Beziehungen", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Zahlen, Farben und Formen", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Zahlen, Farben und Formen", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Zahlen, Farben und Formen", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Wohnen und Haushalt", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Wohnen und Haushalt", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Wohnen und Haushalt", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Essen und Trinken", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Essen und Trinken", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Essen und Trinken", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Freizeit, Hobbys und Sport", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Freizeit, Hobbys und Sport", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Freizeit, Hobbys und Sport", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Arbeit, Beruf und Schule", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Arbeit, Beruf und Schule", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Arbeit, Beruf und Schule", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Reisen, Verkehr und Orientierung", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Reisen, Verkehr und Orientierung", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Reisen, Verkehr und Orientierung", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Gesundheit, Körper und Medizin", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Gesundheit, Körper und Medizin", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Gesundheit, Körper und Medizin", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Natur, Umwelt und Wetter", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Natur, Umwelt und Wetter", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Natur, Umwelt und Wetter", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Politik, Wirtschaft und Gesellschaft", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Politik, Wirtschaft und Gesellschaft", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Politik, Wirtschaft und Gesellschaft", "level": "C1.1", "level_number": 3 },
+
+  { "language": "DE", "topic": "Kunst, Kultur und Literatur", "level": "A1.1", "level_number": 1 },
+  { "language": "DE", "topic": "Kunst, Kultur und Literatur", "level": "B1.1", "level_number": 2 },
+  { "language": "DE", "topic": "Kunst, Kultur und Literatur", "level": "C1.1", "level_number": 3 }
+]

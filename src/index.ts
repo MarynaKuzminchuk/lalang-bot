@@ -38,6 +38,15 @@ const grammarData = JSON.parse(grammarJsonData) as Array<{
 }>;
 staticDataRepository.saveGrammarData(grammarData);
 
+const vocabularyJsonData = readFileSync('db/vocabulary.json', 'utf-8');
+const vocabularyData = JSON.parse(vocabularyJsonData) as Array<{
+  language: string;
+  topic: string;
+  level: string;
+  level_number: number;
+}>;
+staticDataRepository.saveVocabularyData(vocabularyData);
+
 const translationRepository = new TranslationRepository(db);
 const chatStateRepository = new ChatStateRepository(db);
 
