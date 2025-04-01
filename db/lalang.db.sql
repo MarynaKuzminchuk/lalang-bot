@@ -38,3 +38,22 @@ CREATE TABLE IF NOT EXISTS chat_state (
   is_waiting_for_translation BOOLEAN,
   UNIQUE(chat_id)
 );
+
+CREATE TABLE IF NOT EXISTS grammar (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  language TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  level TEXT NOT NULL,
+  level_number INTEGER NOT NULL,
+  UNIQUE(language, topic, level)
+);
+
+CREATE TABLE IF NOT EXISTS vocabulary (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  language TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  level TEXT NOT NULL,
+  level_number INTEGER NOT NULL,
+  UNIQUE(language, topic, level)
+);
+
