@@ -2,8 +2,8 @@ import TelegramBot from 'node-telegram-bot-api';
 import { TranslationRepository } from './translationRepository';
 import { ChatGPTService } from './chatgptService';
 import { TelegramBotClient } from './telegramBotClient';
-import { GRAMMAR_DE } from './chatgptService';
 import { ChatStateRepository } from './chatStateRepository';
+import { TopicsRepository } from './topicsRepository';
 
 export class TelegramBotController {
 
@@ -11,7 +11,8 @@ export class TelegramBotController {
     private telegramBotClient: TelegramBotClient,
     private chatGptService: ChatGPTService,
     private translationRepository: TranslationRepository,
-    private chatStateRepository: ChatStateRepository
+    private chatStateRepository: ChatStateRepository,
+    private topicsRepository: TopicsRepository
   ) {}
 
   // Handle /start command
@@ -109,23 +110,12 @@ export class TelegramBotController {
 
   private async handleAssignmentRequest(chatId: number): Promise<void> {
     try {
-      const allTopics = GRAMMAR_DE.split(',').map(topic => topic.trim());
-      const attemptedTopics = this.translationRepository.getAttemptedTopics(chatId);
-      const notAttemptedTopics = allTopics.filter(topic => !attemptedTopics.includes(topic));
+      const grammarTopics = this.topicsRepository.getGrammarTopics("DE");
+      const vocabularyTopics = this.topicsRepository.getVocabularyTopics("DE");
+      const selectedGrammarTopic = grammarTopics[Math.floor(Math.random() * grammarTopics.length)];
+      const selectedVocabularyTopic = vocabularyTopics[Math.floor(Math.random() * vocabularyTopics.length)];
       
-      let selectedTopic: string;
-      if (notAttemptedTopics.length > 0) {
-        selectedTopic = notAttemptedTopics[Math.floor(Math.random() * notAttemptedTopics.length)];
-      } else {
-        const weakTopics = this.translationRepository.getWeakTopics(chatId);
-        if (weakTopics.length > 0) {
-          selectedTopic = weakTopics[Math.floor(Math.random() * weakTopics.length)].topic;
-        } else {
-          selectedTopic = allTopics[Math.floor(Math.random() * allTopics.length)];
-        }
-      }
-      
-      const sentence = await this.chatGptService.generateTranslationTask(selectedTopic);
+      const sentence = await this.chatGptService.generateTranslationTask(selectedGrammarTopic, selectedVocabularyTopic);
       if (!sentence) {
         this.telegramBotClient.sendMessage(chatId, 'Assignment generation error.');
         return;
@@ -134,12 +124,12 @@ export class TelegramBotController {
       this.chatStateRepository.saveChatState({
         chat_id: chatId,
         sentence: sentence,
-        topic: selectedTopic,
+        topic: selectedGrammarTopic.topic,
         is_waiting_for_translation: true
       });
       this.telegramBotClient.sendMessage(
         chatId,
-        `Translate into German (Topic: ${selectedTopic}):\n\n"${sentence}"\n\n(Enter your translation below.)`
+        `Translate into German (Topic: ${selectedGrammarTopic.topic}):\n\n"${sentence}"\n\n(Enter your translation below.)`
       );
     } catch (error) {
       console.error('Assignment generation error:', error);

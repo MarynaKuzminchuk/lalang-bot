@@ -8,7 +8,7 @@ import { TranslationRepository } from './translationRepository';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
-import { StaticDataRepository } from './staticDataRepository';
+import { GrammarTopic, TopicsRepository, VocabularyTopic } from './topicsRepository';
 
 dotenv.config();
 
@@ -28,24 +28,13 @@ db.exec(createDbSchemaScript);
 const rows = db.prepare('SELECT * FROM translation_analysis').all();
 console.log(rows);
 
-const staticDataRepository = new StaticDataRepository(db);
+const topicsRepository = new TopicsRepository(db);
 const grammarJsonData = readFileSync('db/grammar.json', 'utf-8');
-const grammarData = JSON.parse(grammarJsonData) as Array<{
-  language: string;
-  topic: string;
-  level: string;
-  level_number: number;
-}>;
-staticDataRepository.saveGrammarData(grammarData);
-
+const grammarTopics = JSON.parse(grammarJsonData) as GrammarTopic[];
+topicsRepository.saveGrammarTopics(grammarTopics);
 const vocabularyJsonData = readFileSync('db/vocabulary.json', 'utf-8');
-const vocabularyData = JSON.parse(vocabularyJsonData) as Array<{
-  language: string;
-  topic: string;
-  level: string;
-  level_number: number;
-}>;
-staticDataRepository.saveVocabularyData(vocabularyData);
+const vocabularyTopics = JSON.parse(vocabularyJsonData) as VocabularyTopic[];
+topicsRepository.saveVocabularyTopics(vocabularyTopics);
 
 const translationRepository = new TranslationRepository(db);
 const chatStateRepository = new ChatStateRepository(db);
@@ -57,7 +46,7 @@ if (!telegramBotToken) {
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
-const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository, chatStateRepository);
+const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository, chatStateRepository, topicsRepository);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
 });

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { GrammarTopic, VocabularyTopic } from './topicsRepository';
 
 export const GRAMMAR_DE: string = `Großschreibung der Substantive, Grammatisches Geschlecht (Genus), 
 Nominativ, Akkusativ, Dativ, Genitiv, Schwache Maskulina (N-Deklination), Pluralbildung, 
@@ -19,13 +20,13 @@ export class ChatGPTService {
 
   constructor(private openai: OpenAI) {}
 
-  public async generateTranslationTask(topic?: string): Promise<string> {
-    let prompt: string;
-    if (topic) {
-      prompt = `Please generate a sentence in Russian that focuses on the grammar topic: "${topic}". Just output the sentence directly.`;
-    } else {
-      prompt = 'Come up with and give me a sentence on any topic in Russian for further translation. Just output the sentence directly.';
-    }
+  public async generateTranslationTask(selectedGrammarTopic: GrammarTopic, selectedVocabularyTopic: VocabularyTopic): Promise<string> {
+    const prompt = `
+      Please generate a sentence in Russian 
+      that focuses on the German grammar topic "${selectedGrammarTopic.topic} of ${selectedGrammarTopic.level} level" 
+      and vocabulary topic "${selectedVocabularyTopic.topic} of ${selectedVocabularyTopic.level} level".
+      Just output the sentence directly.
+    `.trim();
     return await this.generateGPTRequest(prompt);
   }
 
