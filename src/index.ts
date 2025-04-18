@@ -9,6 +9,8 @@ import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
 import { GrammarTopic, TopicsRepository, VocabularyTopic } from './topicsRepository';
+import { ExerciseRepository } from './exerciseRepository';
+import { ExerciseService } from './exerciseService';
 
 dotenv.config();
 
@@ -25,9 +27,6 @@ const db = new Database('database.sqlite');
 const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
 db.exec(createDbSchemaScript);
 
-const rows = db.prepare('SELECT * FROM translation_analysis').all();
-console.log(rows);
-
 const topicsRepository = new TopicsRepository(db);
 const grammarJsonData = readFileSync('db/grammar.json', 'utf-8');
 const grammarTopics = JSON.parse(grammarJsonData) as GrammarTopic[];
@@ -38,6 +37,9 @@ topicsRepository.saveVocabularyTopics(vocabularyTopics);
 
 const translationRepository = new TranslationRepository(db);
 const chatStateRepository = new ChatStateRepository(db);
+const exerciseRepository = new ExerciseRepository(db);
+
+const exerciseService = new ExerciseService(chatGptService, topicsRepository, exerciseRepository);
 
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!telegramBotToken) {
@@ -46,7 +48,7 @@ if (!telegramBotToken) {
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
-const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository, chatStateRepository, topicsRepository);
+const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository, chatStateRepository, topicsRepository, exerciseService);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
 });
@@ -57,3 +59,7 @@ bot.on('message', async (msg) => {
   telegramBotController.handleIncomingMessage(msg);
 });
 console.log('Telegram bot has been started via Long Polling');
+
+exerciseService.createExercise(1).then(result => {
+  console.log(JSON.stringify(result));
+});

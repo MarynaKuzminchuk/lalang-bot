@@ -4,6 +4,7 @@ import { ChatGPTService } from './chatgptService';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
 import { TopicsRepository } from './topicsRepository';
+import { ExerciseService } from './exerciseService';
 
 export class TelegramBotController {
 
@@ -12,7 +13,8 @@ export class TelegramBotController {
     private chatGptService: ChatGPTService,
     private translationRepository: TranslationRepository,
     private chatStateRepository: ChatStateRepository,
-    private topicsRepository: TopicsRepository
+    private topicsRepository: TopicsRepository,
+    private exerciseService: ExerciseService
   ) {}
 
   // Handle /start command
@@ -32,7 +34,7 @@ export class TelegramBotController {
     if (!chatId) return;
 
     if (query.data === 'give_task') {
-      await this.handleAssignmentRequest(chatId);
+      await this.handleExerciseRequest(chatId);
       this.telegramBotClient.answerCallbackQuery(query);
     }
   }
@@ -108,28 +110,19 @@ export class TelegramBotController {
     }
   }
 
-  private async handleAssignmentRequest(chatId: number): Promise<void> {
+  private async handleExerciseRequest(chatId: number): Promise<void> {
     try {
-      const grammarTopics = this.topicsRepository.getGrammarTopics("DE");
-      const vocabularyTopics = this.topicsRepository.getVocabularyTopics("DE");
-      const selectedGrammarTopic = grammarTopics[Math.floor(Math.random() * grammarTopics.length)];
-      const selectedVocabularyTopic = vocabularyTopics[Math.floor(Math.random() * vocabularyTopics.length)];
-      
-      const sentence = await this.chatGptService.generateTranslationTask(selectedGrammarTopic, selectedVocabularyTopic);
-      if (!sentence) {
-        this.telegramBotClient.sendMessage(chatId, 'Assignment generation error.');
-        return;
-      }
+      const exercise = await this.exerciseService.createExercise(chatId);
 
       this.chatStateRepository.saveChatState({
         chat_id: chatId,
-        sentence: sentence,
-        topic: selectedGrammarTopic.topic,
+        sentence: exercise.sentence,
+        topic: exercise.grammar_topics[0].topic,
         is_waiting_for_translation: true
       });
       this.telegramBotClient.sendMessage(
         chatId,
-        `Translate into German (Topic: ${selectedGrammarTopic.topic}):\n\n"${sentence}"\n\n(Enter your translation below.)`
+        `Translate the following sentence to ${exercise.studied_language}: ${exercise.sentence}`
       );
     } catch (error) {
       console.error('Assignment generation error:', error);

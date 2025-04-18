@@ -20,10 +20,10 @@ export class ChatGPTService {
 
   constructor(private openai: OpenAI) {}
 
-  public async generateTranslationTask(selectedGrammarTopic: GrammarTopic, selectedVocabularyTopic: VocabularyTopic): Promise<string> {
+  public async generateSentence(nativeLanguage: string, studiedLanguage: string, selectedGrammarTopic: GrammarTopic, selectedVocabularyTopic: VocabularyTopic): Promise<string> {
     const prompt = `
-      Please generate a sentence in Russian 
-      that focuses on the German grammar topic "${selectedGrammarTopic.topic} of ${selectedGrammarTopic.level} level" 
+      Please generate a sentence in ${nativeLanguage} that will be translated to ${studiedLanguage} 
+      that focuses on the ${studiedLanguage} grammar topic "${selectedGrammarTopic.topic} of ${selectedGrammarTopic.level} level" 
       and vocabulary topic "${selectedVocabularyTopic.topic} of ${selectedVocabularyTopic.level} level".
       Just output the sentence directly.
     `.trim();

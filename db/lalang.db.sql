@@ -57,3 +57,26 @@ CREATE TABLE IF NOT EXISTS vocabulary (
   UNIQUE(language, topic, level)
 );
 
+CREATE TABLE IF NOT EXISTS exercise (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  sentence TEXT NOT NULL,
+  native_language TEXT NOT NULL,
+  studied_language TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS exercise_grammar (
+  exercise_id INTEGER NOT NULL,
+  grammar_id INTEGER NOT NULL,
+  PRIMARY KEY (exercise_id, grammar_id),
+  FOREIGN KEY (exercise_id) REFERENCES exercise(id),
+  FOREIGN KEY (grammar_id) REFERENCES grammar(id)
+);
+
+CREATE TABLE IF NOT EXISTS exercise_vocabulary (
+  exercise_id INTEGER NOT NULL,
+  vocabulary_id INTEGER NOT NULL,
+  PRIMARY KEY (exercise_id, vocabulary_id),
+  FOREIGN KEY (exercise_id) REFERENCES exercise(id),
+  FOREIGN KEY (vocabulary_id) REFERENCES vocabulary(id)
+);
