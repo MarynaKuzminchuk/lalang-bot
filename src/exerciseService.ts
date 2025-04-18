@@ -31,7 +31,14 @@ export class ExerciseService {
     });
   }
 
-  public evaluateExercise() {}
+  public async evaluateExercise(exerciseId: number, translation: string): Promise<string> {
+    const exercise = this.exerciseRepository.getExercise(exerciseId);
+    this.exerciseRepository.updateExercise({
+      id: exercise.id,
+      translation: translation
+    });
+    return this.chatGptService.checkTranslation(exercise.sentence, translation);
+  }
 }
 
 export interface Exercise {
@@ -40,6 +47,7 @@ export interface Exercise {
   native_language: string;
   studied_language: string;
   sentence: string;
+  translation?: string;
   grammar_topics: GrammarTopic[];
   vocabulary_topics: VocabularyTopic[];
 }

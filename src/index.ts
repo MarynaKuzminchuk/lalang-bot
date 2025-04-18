@@ -4,7 +4,6 @@ import TelegramBot from 'node-telegram-bot-api';
 import OpenAI from 'openai';
 import { ChatGPTService } from './chatgptService';
 import Database from 'better-sqlite3';
-import { TranslationRepository } from './translationRepository';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
@@ -35,7 +34,6 @@ const vocabularyJsonData = readFileSync('db/vocabulary.json', 'utf-8');
 const vocabularyTopics = JSON.parse(vocabularyJsonData) as VocabularyTopic[];
 topicsRepository.saveVocabularyTopics(vocabularyTopics);
 
-const translationRepository = new TranslationRepository(db);
 const chatStateRepository = new ChatStateRepository(db);
 const exerciseRepository = new ExerciseRepository(db);
 
@@ -48,7 +46,7 @@ if (!telegramBotToken) {
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
-const telegramBotController = new TelegramBotController(telegramBotClient, chatGptService, translationRepository, chatStateRepository, topicsRepository, exerciseService);
+const telegramBotController = new TelegramBotController(telegramBotClient, chatStateRepository, exerciseService);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
 });
@@ -62,4 +60,7 @@ console.log('Telegram bot has been started via Long Polling');
 
 exerciseService.createExercise(1).then(result => {
   console.log(JSON.stringify(result));
+  exerciseService.evaluateExercise(result.id, "bla").then(evaluationResult => {
+    console.log(evaluationResult);
+  })
 });
