@@ -92,7 +92,8 @@ export class TelegramBotController {
   // Handle incoming messages (user translations)
   public async handleIncomingMessage(msg: TelegramBot.Message) {
     const chatId = msg.chat.id;
-    const text = msg.text || '';
+    const text = msg.text;
+    if (!text || text.startsWith("/")) return;
     const chatState = this.chatStateRepository.getChatState(chatId);
     if (chatState && chatState.exercise_id) {
       const evaluation = await this.exerciseService.evaluateExercise(chatState.exercise_id, text);
