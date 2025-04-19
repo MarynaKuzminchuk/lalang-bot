@@ -20,7 +20,12 @@ if (!openAiApiKey) {
 const openai = new OpenAI({
   apiKey: openAiApiKey,
 });
-const chatGptService = new ChatGPTService(openai);
+
+const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+if (!telegramBotToken) {
+  throw new Error('TELEGRAM_BOT_TOKEN is missing in .env');
+}
+const bot = new TelegramBot(telegramBotToken, { polling: true });
 
 const db = new Database('database.sqlite');
 const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
@@ -35,36 +40,32 @@ const vocabularyTopics = (JSON.parse(vocabularyJsonData) as Topic[]).map(topic =
 exerciseRepository.saveTopics([...grammarTopics, ...vocabularyTopics]);
 const chatStateRepository = new ChatStateRepository(db);
 
+const chatGptService = new ChatGPTService(openai);
 const exerciseService = new ExerciseService(chatGptService, exerciseRepository);
-
-const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
-if (!telegramBotToken) {
-  throw new Error('TELEGRAM_BOT_TOKEN is missing in .env');
-}
-const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
 const telegramBotController = new TelegramBotController(telegramBotClient, userRepository, chatStateRepository, exerciseService);
 bot.setMyCommands([
   {command: "/language", description: "Выбрать язык"},
   {command: "/level", description: "Выбрать уровень"}
-]);
-bot.onText(/\/start/, (msg) => {
-  telegramBotController.start(msg);
+]).then(_ => {
+  bot.onText(/\/start/, (msg) => {
+    telegramBotController.start(msg);
+  });
+  bot.onText(/\/language/, (msg) => {
+    telegramBotController.selectStudiedLanguage(msg.chat.id);
+  });
+  bot.onText(/\/level/, (msg) => {
+    telegramBotController.selectLanguageLevel(msg.chat.id);
+  });
+  bot.on('callback_query', async (query) => {
+    telegramBotController.handleCallbackQuery(query);
+  });
+  bot.on('message', async (msg) => {
+    telegramBotController.handleIncomingMessage(msg);
+  });
+  console.log('Telegram bot has been started via Long Polling');
 });
-bot.onText(/\/language/, (msg) => {
-  telegramBotController.selectStudiedLanguage(msg.chat.id);
-});
-bot.onText(/\/level/, (msg) => {
-  telegramBotController.selectLanguageLevel(msg.chat.id);
-});
-bot.on('callback_query', async (query) => {
-  telegramBotController.handleCallbackQuery(query);
-});
-bot.on('message', async (msg) => {
-  telegramBotController.handleIncomingMessage(msg);
-});
-console.log('Telegram bot has been started via Long Polling');
 
 // userRepository.saveUser({ username: "test" });
 // const user = userRepository.getUser("test");
