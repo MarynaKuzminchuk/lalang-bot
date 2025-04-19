@@ -56,13 +56,13 @@ bot.on('message', async (msg) => {
 });
 console.log('Telegram bot has been started via Long Polling');
 
-userRepository.saveUser({ username: "test" });
-const user = userRepository.getUser("test");
-if (user) {
-  exerciseService.createExercise(user).then(result => {
-    console.log(JSON.stringify(result));
-    exerciseService.evaluateExercise(result.id, "bla").then(evaluationResult => {
-      console.log(evaluationResult);
-    })
-  });
-}
+// userRepository.saveUser({ username: "test" });
+// const user = userRepository.getUser("test");
+// if (user) {
+//   exerciseService.createExercise(user).then(result => {
+//     console.log(JSON.stringify(result));
+//     exerciseService.evaluateExercise(result.id, "bla").then(evaluationResult => {
+//       console.log(evaluationResult);
+//     })
+//   });
+// }
