@@ -3,7 +3,6 @@ import { ExerciseRepository } from "./exerciseRepository";
 import { User } from "./userRepository";
 
 export class ExerciseService {
-
   constructor(
     private chatGptService: ChatGPTService,
     private exerciseRepository: ExerciseRepository

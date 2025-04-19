@@ -7,6 +7,7 @@ export class TelegramBotClient {
     return this.bot.sendMessage(chatId, text, {
       reply_markup: {
         inline_keyboard: [buttons],
+        resize_keyboard: true
       },
     });
   }

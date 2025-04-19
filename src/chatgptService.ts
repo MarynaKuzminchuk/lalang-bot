@@ -2,7 +2,6 @@ import OpenAI from 'openai';
 import { Exercise, Topic } from './exerciseService';
 
 export class ChatGPTService {
-
   constructor(private openai: OpenAI) { }
 
   public async generateSentence(nativeLanguage: string, studiedLanguage: string, selectedGrammarTopic: Topic, selectedVocabularyTopic: Topic): Promise<string> {

@@ -45,8 +45,18 @@ const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
 const telegramBotController = new TelegramBotController(telegramBotClient, userRepository, chatStateRepository, exerciseService);
+bot.setMyCommands([
+  {command: "/language", description: "Выбрать язык"},
+  {command: "/level", description: "Выбрать уровень"}
+]);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
+});
+bot.onText(/\/language/, (msg) => {
+  telegramBotController.selectStudiedLanguage(msg.chat.id);
+});
+bot.onText(/\/level/, (msg) => {
+  telegramBotController.selectLanguageLevel(msg.chat.id);
 });
 bot.on('callback_query', async (query) => {
   telegramBotController.handleCallbackQuery(query);

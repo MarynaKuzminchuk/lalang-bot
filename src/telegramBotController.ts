@@ -10,7 +10,6 @@ const CHOOSE_LANGUAGE_LEVEL = 'На каком уровне хотите поп�
 const FIRST_EXERCISE = 'Я буду предлагать вам предложения для перевода. Как только отправите перевод, я оценю его и помогу разобраться в ошибках.';
 
 export class TelegramBotController {
-
   constructor(
     private telegramBotClient: TelegramBotClient,
     private userRepository: UserRepository,
@@ -43,6 +42,31 @@ export class TelegramBotController {
     }
   }
 
+  public selectStudiedLanguage(chatId: number) {
+    this.telegramBotClient.sendMessageWithOptions(chatId, CHOOSE_STUDIED_LANGUAGE_MESSAGE, [
+      { text: 'Английский', callback_data: JSON.stringify({studied_language: "English"}) },
+      { text: 'Немецкий', callback_data: JSON.stringify({studied_language: "German"}) },
+      { text: 'Голландский', callback_data: JSON.stringify({studied_language: "Dutch"}) }
+    ]);
+  }
+
+  public selectLanguageLevel(chatId: number) {
+    this.telegramBotClient.sendMessageWithOptions(chatId, CHOOSE_LANGUAGE_LEVEL, [
+      { text: 'A1.1', callback_data: JSON.stringify({level_number: 1}) },
+      { text: 'A1.2', callback_data: JSON.stringify({level_number: 2}) },
+      { text: 'A2.1', callback_data: JSON.stringify({level_number: 3}) },
+      { text: 'A2.2', callback_data: JSON.stringify({level_number: 4}) },
+      { text: 'B1.1', callback_data: JSON.stringify({level_number: 5}) },
+      { text: 'B1.2', callback_data: JSON.stringify({level_number: 6}) },
+      { text: 'B2.1', callback_data: JSON.stringify({level_number: 7}) },
+      { text: 'B2.2', callback_data: JSON.stringify({level_number: 8}) },
+      { text: 'C1.1', callback_data: JSON.stringify({level_number: 9}) },
+      { text: 'C1.2', callback_data: JSON.stringify({level_number: 10}) },
+      { text: 'C2.1', callback_data: JSON.stringify({level_number: 11}) },
+      { text: 'C2.2', callback_data: JSON.stringify({level_number: 12}) },
+    ]);
+  }
+
   // Handle callback queries (e.g., button clicks)
   public async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     const chatId = query.message?.chat.id;
@@ -53,25 +77,17 @@ export class TelegramBotController {
     if (!user) return;
     if (queryData.studied_language) {
       this.userRepository.saveUser({...user, studied_language: queryData.studied_language});
-      this.telegramBotClient.sendMessageWithOptions(chatId, CHOOSE_LANGUAGE_LEVEL, [
-        { text: 'A1.1', callback_data: JSON.stringify({level_number: 1}) },
-        { text: 'A1.2', callback_data: JSON.stringify({level_number: 2}) },
-        { text: 'A2.1', callback_data: JSON.stringify({level_number: 3}) },
-        { text: 'A2.2', callback_data: JSON.stringify({level_number: 4}) },
-        { text: 'B1.1', callback_data: JSON.stringify({level_number: 5}) },
-        { text: 'B1.2', callback_data: JSON.stringify({level_number: 6}) },
-        { text: 'B2.1', callback_data: JSON.stringify({level_number: 7}) },
-        { text: 'B2.2', callback_data: JSON.stringify({level_number: 8}) },
-        { text: 'C1.1', callback_data: JSON.stringify({level_number: 9}) },
-        { text: 'C1.2', callback_data: JSON.stringify({level_number: 10}) },
-        { text: 'C2.1', callback_data: JSON.stringify({level_number: 11}) },
-        { text: 'C2.2', callback_data: JSON.stringify({level_number: 12}) },
-      ]);
+      this.selectLanguageLevel(chatId);
     } else if (queryData.level_number) {
+      const previousLevelNumber = user.level_number;
       this.userRepository.saveUser({...user, level_number: queryData.level_number});
-      this.telegramBotClient.sendMessageWithOptions(chatId, FIRST_EXERCISE, [
-        { text: 'Получить первое задание', callback_data: JSON.stringify({request_exercise: true}) }
-      ]);
+      if (previousLevelNumber) {
+        this.handleExerciseRequest(user, chatId);
+      } else {
+        this.telegramBotClient.sendMessageWithOptions(chatId, FIRST_EXERCISE, [
+          { text: 'Получить первое задание', callback_data: JSON.stringify({request_exercise: true}) }
+        ]);
+      }
     } else if (queryData.request_exercise) {
       await this.handleExerciseRequest(user, chatId);
       this.telegramBotClient.answerCallbackQuery(query);
