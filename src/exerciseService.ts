@@ -1,6 +1,6 @@
 import { ChatGPTService } from "./chatgptService";
-import { ExerciseRepository, GradedTopic } from "./exerciseRepository";
-import { TopicsRepository } from "./topicsRepository";
+import { ExerciseRepository } from "./exerciseRepository";
+import { Topic, TopicsRepository } from "./topicsRepository";
 
 export class ExerciseService {
 
@@ -8,7 +8,7 @@ export class ExerciseService {
     private chatGptService: ChatGPTService,
     private topicsRepository: TopicsRepository,
     private exerciseRepository: ExerciseRepository
-  ) {}
+  ) { }
 
   public async createExercise(userId: number): Promise<Exercise> {
     const nativeLanguage = "Russian";
@@ -81,4 +81,8 @@ export interface Evaluation {
   explanation: string,
   graded_grammar_topics: GradedTopic[],
   graded_vocabulary_topics: GradedTopic[]
+}
+
+export interface GradedTopic extends Topic {
+  grade?: number;
 }

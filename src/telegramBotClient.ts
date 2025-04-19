@@ -1,7 +1,7 @@
 import TelegramBot, { Message } from "node-telegram-bot-api";
 
 export class TelegramBotClient {
-  constructor(private bot: TelegramBot) {}
+  constructor(private bot: TelegramBot) { }
 
   public sendTaskButton(chatId: number): Promise<Message> {
     const keyboard = {

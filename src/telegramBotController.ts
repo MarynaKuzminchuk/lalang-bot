@@ -9,14 +9,14 @@ export class TelegramBotController {
     private telegramBotClient: TelegramBotClient,
     private chatStateRepository: ChatStateRepository,
     private exerciseService: ExerciseService
-  ) {}
+  ) { }
 
   // Handle /start command
   public start(msg: TelegramBot.Message) {
     const chatId = msg.chat.id;
     this.telegramBotClient.sendMessage(chatId,
       'Welcome to Lalang, a chatbot for learning a foreign language.\n\n' +
-        'You will be given tasks to translate and after you will get a breakdown of your answer.\n\nHave fun!'
+      'You will be given tasks to translate and after you will get a breakdown of your answer.\n\nHave fun!'
     );
     this.telegramBotClient.sendTaskButton(chatId);
   }

@@ -1,9 +1,8 @@
 import Database from 'better-sqlite3';
-import { Exercise } from './exerciseService';
-import { Topic } from './topicsRepository';
+import { Exercise, GradedTopic } from './exerciseService';
 
 export class ExerciseRepository {
-  constructor(private db: Database.Database) {}
+  constructor(private db: Database.Database) { }
 
   public saveExercise(exercise: Omit<Exercise, "id">): Exercise {
     const exerciseId = this.db.prepare(`
@@ -23,8 +22,8 @@ export class ExerciseRepository {
       `).run(exerciseId, vocabularyTopic.id);
     }
     return {
-        ...exercise,
-        id: exerciseId
+      ...exercise,
+      id: exerciseId
     }
   }
 
@@ -63,28 +62,24 @@ export class ExerciseRepository {
       WHERE id = ?
     `).run(exercise.translation, exercise.correct_translation, exercise.id);
 
-      if (exercise.grammar_topics) {
-        exercise.grammar_topics.forEach((grammarTopic) => {
-          this.db.prepare(`
+    if (exercise.grammar_topics) {
+      exercise.grammar_topics.forEach((grammarTopic) => {
+        this.db.prepare(`
             UPDATE exercise_grammar
             SET grade = ?
             WHERE exercise_id = ? AND grammar_id = ?
           `).run(grammarTopic.grade, exercise.id, grammarTopic.id);
-        });
+      });
     }
 
     if (exercise.vocabulary_topics) {
-        exercise.vocabulary_topics.forEach((vocabularyTopic) => {
-          this.db.prepare(`
+      exercise.vocabulary_topics.forEach((vocabularyTopic) => {
+        this.db.prepare(`
             UPDATE exercise_vocabulary
             SET grade = ?
             WHERE exercise_id = ? AND vocabulary_id = ?
           `).run(vocabularyTopic.grade, exercise.id, vocabularyTopic.id);
-        });
+      });
     }
   }
-}
-
-export interface GradedTopic extends Topic {
-  grade?: number;
 }

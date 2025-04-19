@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 
 export class ChatStateRepository {
-  constructor(private db: Database.Database) {}
+  constructor(private db: Database.Database) { }
 
   public saveChatState(chatState: ChatState): void {
     this.db.prepare(`
@@ -20,6 +20,6 @@ export class ChatStateRepository {
 }
 
 interface ChatState {
-    chat_id: number;
-    exercise_id?: number;
+  chat_id: number;
+  exercise_id?: number;
 }

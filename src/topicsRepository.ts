@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 
 export class TopicsRepository {
-  constructor(private db: Database.Database) {}
+  constructor(private db: Database.Database) { }
 
   public saveGrammarTopics(grammarTopics: Omit<Topic, "id">[]): void {
     const insertGrammarStmt = this.db.prepare(`
