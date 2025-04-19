@@ -7,19 +7,19 @@ CREATE TABLE IF NOT EXISTS chat_state (
 CREATE TABLE IF NOT EXISTS grammar (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   language TEXT NOT NULL,
-  topic TEXT NOT NULL,
+  name TEXT NOT NULL,
   level TEXT NOT NULL,
   level_number INTEGER NOT NULL,
-  UNIQUE(language, topic, level)
+  UNIQUE(language, name, level)
 );
 
 CREATE TABLE IF NOT EXISTS vocabulary (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   language TEXT NOT NULL,
-  topic TEXT NOT NULL,
+  name TEXT NOT NULL,
   level TEXT NOT NULL,
   level_number INTEGER NOT NULL,
-  UNIQUE(language, topic, level)
+  UNIQUE(language, name, level)
 );
 
 CREATE TABLE IF NOT EXISTS exercise (
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS exercise (
   user_id INTEGER NOT NULL,
   sentence TEXT NOT NULL,
   translation TEXT,
+  correct_translation TEXT,
   native_language TEXT NOT NULL,
   studied_language TEXT NOT NULL
 );

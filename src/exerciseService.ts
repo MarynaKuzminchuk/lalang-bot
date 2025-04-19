@@ -1,6 +1,6 @@
 import { ChatGPTService } from "./chatgptService";
-import { ExerciseRepository } from "./exerciseRepository";
-import { GrammarTopic, TopicsRepository, VocabularyTopic } from "./topicsRepository";
+import { ExerciseRepository, GradedTopic } from "./exerciseRepository";
+import { TopicsRepository } from "./topicsRepository";
 
 export class ExerciseService {
 
@@ -35,9 +35,23 @@ export class ExerciseService {
     const exercise = this.exerciseRepository.getExercise(exerciseId);
     console.log(JSON.stringify(exercise));
     const check = await this.chatGptService.checkTranslation(exercise, translation);
+    const parsedCheck = JSON.parse(check);
     this.exerciseRepository.updateExercise({
       id: exercise.id,
-      translation: translation
+      translation: translation,
+      correct_translation: parsedCheck.correct_translation,
+      grammar_topics: exercise.grammar_topics.map(grammarTopic => {
+        return {
+          ...grammarTopic,
+          grade: parsedCheck.grammar_grades[grammarTopic.name]
+        }
+      }),
+      vocabulary_topics: exercise.vocabulary_topics.map(vocabularyTopic => {
+        return {
+          ...vocabularyTopic,
+          grade: parsedCheck.vocabulary_grades[vocabularyTopic.name]
+        }
+      })
     });
     return check;
   }
@@ -50,6 +64,7 @@ export interface Exercise {
   studied_language: string;
   sentence: string;
   translation?: string;
-  grammar_topics: GrammarTopic[];
-  vocabulary_topics: VocabularyTopic[];
+  correct_translation?: string;
+  grammar_topics: GradedTopic[];
+  vocabulary_topics: GradedTopic[];
 }

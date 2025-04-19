@@ -7,7 +7,7 @@ import Database from 'better-sqlite3';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
-import { GrammarTopic, TopicsRepository, VocabularyTopic } from './topicsRepository';
+import { Topic, TopicsRepository } from './topicsRepository';
 import { ExerciseRepository } from './exerciseRepository';
 import { ExerciseService } from './exerciseService';
 
@@ -28,10 +28,10 @@ db.exec(createDbSchemaScript);
 
 const topicsRepository = new TopicsRepository(db);
 const grammarJsonData = readFileSync('db/grammar.json', 'utf-8');
-const grammarTopics = JSON.parse(grammarJsonData) as GrammarTopic[];
+const grammarTopics = JSON.parse(grammarJsonData) as Topic[];
 topicsRepository.saveGrammarTopics(grammarTopics);
 const vocabularyJsonData = readFileSync('db/vocabulary.json', 'utf-8');
-const vocabularyTopics = JSON.parse(vocabularyJsonData) as VocabularyTopic[];
+const vocabularyTopics = JSON.parse(vocabularyJsonData) as Topic[];
 topicsRepository.saveVocabularyTopics(vocabularyTopics);
 
 const chatStateRepository = new ChatStateRepository(db);
