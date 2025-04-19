@@ -60,13 +60,13 @@ export class ExerciseService {
     const gradedGrammarTopics = exercise.grammar_topics.map(grammarTopic => {
       return {
         ...grammarTopic,
-        grade: parsedCheck.grammar_grades[grammarTopic.name]
+        grade: parsedCheck.grammar_grades[grammarTopic.id]
       }
     });
     const gradedVocabularyTopics = exercise.vocabulary_topics.map(vocabularyTopic => {
       return {
         ...vocabularyTopic,
-        grade: parsedCheck.vocabulary_grades[vocabularyTopic.name]
+        grade: parsedCheck.vocabulary_grades[vocabularyTopic.id]
       }
     });
     this.exerciseRepository.updateExercise({

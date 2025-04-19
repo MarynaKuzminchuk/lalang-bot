@@ -28,8 +28,8 @@ export class ChatGPTService {
       Return evaluation result in the following JSON format:
       {
         correct_translation: "correct translation of the given sentence from ${exercise.native_language} to ${exercise.studied_language}",
-        grammar_grades: {"grammar topic name": int_grade_from_1_to_5},
-        vocabulary_grades: {"vocabulary topic name": int_grade_from_1_to_5},
+        grammar_grades: {"${exercise.grammar_topics[0].id}": int_grade_from_1_to_5},
+        vocabulary_grades: {"${exercise.vocabulary_topics[0].id}": int_grade_from_1_to_5},
         explanation: "use this text to explain the ${exercise.native_language} speaker in his language what are the mistakes, make it very short"
       }
     `;
