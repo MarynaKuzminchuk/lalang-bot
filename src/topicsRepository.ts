@@ -5,9 +5,9 @@ export class TopicsRepository {
 
   public saveGrammarTopics(grammarTopics: Omit<GrammarTopic, "id">[]): void {
     const insertGrammarStmt = this.db.prepare(`
-        INSERT OR IGNORE INTO grammar (language, topic, level, level_number)
-        VALUES (?, ?, ?, ?)
-      `);
+      INSERT OR IGNORE INTO grammar (language, topic, level, level_number)
+      VALUES (?, ?, ?, ?)
+    `);
 
     for (const record of grammarTopics) {
       insertGrammarStmt.run(record.language, record.topic, record.level, record.level_number);
@@ -16,9 +16,9 @@ export class TopicsRepository {
 
   public saveVocabularyTopics(vocabularyTopics: Omit<VocabularyTopic, "id">[]): void {
     const insertVocabularyStmt = this.db.prepare(`
-        INSERT OR IGNORE INTO vocabulary (language, topic, level, level_number)
-        VALUES (?, ?, ?, ?)
-      `);
+      INSERT OR IGNORE INTO vocabulary (language, topic, level, level_number)
+      VALUES (?, ?, ?, ?)
+    `);
 
     for (const record of vocabularyTopics) {
       insertVocabularyStmt.run(record.language, record.topic, record.level, record.level_number);

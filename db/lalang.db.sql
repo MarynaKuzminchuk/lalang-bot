@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS exercise (
 CREATE TABLE IF NOT EXISTS exercise_grammar (
   exercise_id INTEGER NOT NULL,
   grammar_id INTEGER NOT NULL,
+  grade INTEGER,
   PRIMARY KEY (exercise_id, grammar_id),
   FOREIGN KEY (exercise_id) REFERENCES exercise(id),
   FOREIGN KEY (grammar_id) REFERENCES grammar(id)
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS exercise_grammar (
 CREATE TABLE IF NOT EXISTS exercise_vocabulary (
   exercise_id INTEGER NOT NULL,
   vocabulary_id INTEGER NOT NULL,
+  grade INTEGER,
   PRIMARY KEY (exercise_id, vocabulary_id),
   FOREIGN KEY (exercise_id) REFERENCES exercise(id),
   FOREIGN KEY (vocabulary_id) REFERENCES vocabulary(id)

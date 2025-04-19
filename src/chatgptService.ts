@@ -1,20 +1,6 @@
 import OpenAI from 'openai';
 import { GrammarTopic, VocabularyTopic } from './topicsRepository';
-
-export const GRAMMAR_DE: string = `Großschreibung der Substantive, Grammatisches Geschlecht (Genus), 
-Nominativ, Akkusativ, Dativ, Genitiv, Schwache Maskulina (N-Deklination), Pluralbildung, 
-Bestimmter Artikel, Unbestimmter Artikel, Negativartikel (kein), Starke Adjektivdeklination, 
-Gemischte Adjektivdeklination, Schwache Adjektivdeklination, Komparativ und Superlativ, 
-Personalpronomen, Possessivpronomen, Reflexivpronomen, Relativpronomen, Demonstrativpronomen, 
-Interrogativpronomen, Indefinitpronomen, Präsens, Präteritum (Imperfekt), Perfekt, 
-Plusquamperfekt, Futur I, Futur II, Konjunktiv I, Konjunktiv II, Imperativ, Passiv, 
-Regelmäßige Verben (schwache Verben), Unregelmäßige Verben (starke Verben), Gemischte Verben, 
-Modalverben, Trennbare Verben, Untrennbare Verben, Reflexive Verben, Akkusativpräpositionen, 
-Dativpräpositionen, Genitivpräpositionen, Wechselpräpositionen, Koordinierende Konjunktionen, 
-Subordinierende Konjunktionen, Aussagesätze, Entscheidungsfragen (Ja/Nein-Fragen), W-Fragen, 
-Imperativsätze, Nebensätze, Relativsätze, Indirekte Fragen, Satzstellung im Hauptsatz 
-(Verbzweitstellung), Satzstellung im Nebensatz (Verbletztstellung), Inversion, 
-Zeit–Art–Ort (Adverbialordnung), Stellung von „nicht“, Stellung von trennbaren Präfixen.`;
+import { Exercise } from './exerciseService';
 
 export class ChatGPTService {
 
@@ -30,30 +16,20 @@ export class ChatGPTService {
     return await this.generateGPTRequest(prompt);
   }
 
-  public async checkTranslation(original: string, userTranslation: string): Promise<string> {
+  public async checkTranslation(exercise: Exercise, translation: string): Promise<string> {
+    const grammarTopics = exercise.grammar_topics.map(grammarTopic => grammarTopic.topic).join(",");
+    const vocabularyTopics = exercise.vocabulary_topics.map(vocabularyTopic => vocabularyTopic.topic).join(",");
     const prompt = `
-      You are a German language teacher.  
-      Your task is to check the translation from Russian to German.  
-      If there are mistakes, explain them in Russian and suggest the correct version.  
-      Original: "${original}" - take this for analysis, but do not display this field  
-      User's Translation: "${userTranslation}" - take this for analysis, but do not display this field
-
-      Provide the feedback in this format:
-      
-      Corrected version: ...
-      
-      Translation analysis: ...
-      ---
-      // Here write correctly translated sentence
-      ---
-      // Given a list of all grammar rules ${GRAMMAR_DE}
-      // Here write a comma-separated list of correctly used grammar rules
-      ---
-      // And here write a comma-separated list of incorrectly used grammar rules from the same list as above
-      ---
-      // Comma-separated list of correctly translated words
-      ---
-      // Comma-separated list of incorrectly translated words
+      You are a strict language teacher.
+      Your task is to evaluate the translation.
+      From ${exercise.native_language}: "${exercise.sentence}".
+      To ${exercise.studied_language}: "${translation}".
+      Specifically checking grammar topics: ${grammarTopics} and vocabulary topics: ${vocabularyTopics}.
+      Return evaluation result in the following format.
+      correct_translation="coorect translation of the given sentence from ${exercise.native_language} to ${exercise.studied_language}"
+      grammar_grades=[("grammar topic",grade from 1 to 5)]
+      vocabulary_grades=[("vocabulary topic",grade from 1 to 5)]
+      explanation="use this text to explain the ${exercise.native_language} speaker in his language what are the mistakes"
     `;
     console.log(prompt);
     return await this.generateGPTRequest(prompt);

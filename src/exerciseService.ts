@@ -33,11 +33,13 @@ export class ExerciseService {
 
   public async evaluateExercise(exerciseId: number, translation: string): Promise<string> {
     const exercise = this.exerciseRepository.getExercise(exerciseId);
+    console.log(JSON.stringify(exercise));
+    const check = await this.chatGptService.checkTranslation(exercise, translation);
     this.exerciseRepository.updateExercise({
       id: exercise.id,
       translation: translation
     });
-    return this.chatGptService.checkTranslation(exercise.sentence, translation);
+    return check;
   }
 }
 

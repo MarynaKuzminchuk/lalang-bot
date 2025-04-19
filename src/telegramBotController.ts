@@ -33,6 +33,18 @@ export class TelegramBotController {
     }
   }
 
+  private async handleExerciseRequest(chatId: number): Promise<void> {
+    const exercise = await this.exerciseService.createExercise(chatId);
+    this.chatStateRepository.saveChatState({
+      chat_id: chatId,
+      exercise_id: exercise.id
+    });
+    this.telegramBotClient.sendMessage(
+      chatId,
+      `Translate to ${exercise.studied_language}: ${exercise.sentence}`
+    );
+  }
+
   // Handle incoming messages (user translations)
   public async handleIncomingMessage(msg: TelegramBot.Message) {
     const chatId = msg.chat.id;
@@ -62,17 +74,5 @@ export class TelegramBotController {
       await this.telegramBotClient.sendMessage(chatId, messageToStudent);
       this.telegramBotClient.sendTaskButton(chatId);
     }
-  }
-
-  private async handleExerciseRequest(chatId: number): Promise<void> {
-    const exercise = await this.exerciseService.createExercise(chatId);
-    this.chatStateRepository.saveChatState({
-      chat_id: chatId,
-      exercise_id: exercise.id
-    });
-    this.telegramBotClient.sendMessage(
-      chatId,
-      `Translate to ${exercise.studied_language}: ${exercise.sentence}`
-    );
   }
 }

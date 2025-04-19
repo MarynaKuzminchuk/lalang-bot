@@ -40,14 +40,14 @@ export class ExerciseRepository {
         FROM grammar g
         JOIN exercise_grammar eg ON eg.grammar_id = g.id
         WHERE eg.exercise_id = ?
-    `).get(exerciseId) as GrammarTopic[];
+    `).all(exerciseId) as GrammarTopic[];
 
     const vocabularyTopics = this.db.prepare(`
       SELECT v.id, v.language, v.topic, v.level, v.level_number
         FROM vocabulary v
         JOIN exercise_vocabulary ev ON ev.vocabulary_id = v.id
         WHERE ev.exercise_id = ?
-    `).get(exerciseId) as VocabularyTopic[];
+    `).all(exerciseId) as VocabularyTopic[];
 
     return {
       ...partialExercise,
@@ -60,6 +60,7 @@ export class ExerciseRepository {
     this.db.prepare(`
       UPDATE exercise
       SET translation = ?
-      WHERE id = ?`).run(exercise.translation, exercise.id);
+      WHERE id = ?
+    `).run(exercise.translation, exercise.id);
   }
 }
