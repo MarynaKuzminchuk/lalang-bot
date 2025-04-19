@@ -1,6 +1,7 @@
 import { ChatGPTService } from "./chatgptService";
 import { ExerciseRepository } from "./exerciseRepository";
 import { Topic } from "./topicsRepository";
+import { User } from "./userRepository";
 
 export class ExerciseService {
 
@@ -9,19 +10,19 @@ export class ExerciseService {
     private exerciseRepository: ExerciseRepository
   ) { }
 
-  public async createExercise(userId: number): Promise<Exercise> {
-    const nativeLanguage = "Russian";
-    const studiedLanguage = "German";
-    const levelNumber = 6;
-    const grammarTopics = this.exerciseRepository.getGradedGrammarTopics(userId, studiedLanguage, levelNumber);
-    const vocabularyTopics = this.exerciseRepository.getGradedVocabularyTopics(userId, studiedLanguage, levelNumber);
+  public async createExercise(user: User): Promise<Exercise> {
+    const nativeLanguage = user.native_language ?? "Russian";
+    const studiedLanguage = user.studied_language ?? "German";
+    const levelNumber = user.level_number ?? 1;
+    const grammarTopics = this.exerciseRepository.getGradedGrammarTopics(user.id, studiedLanguage, levelNumber);
+    const vocabularyTopics = this.exerciseRepository.getGradedVocabularyTopics(user.id, studiedLanguage, levelNumber);
     const selectedGrammarTopic = this.chooseTopic(grammarTopics);
     const selectedVocabularyTopic = this.chooseTopic(vocabularyTopics);
     const sentence = await this.chatGptService.generateSentence(
       nativeLanguage, studiedLanguage, selectedGrammarTopic, selectedVocabularyTopic
     );
     return this.exerciseRepository.saveExercise({
-      user_id: userId,
+      user_id: user.id,
       native_language: nativeLanguage,
       studied_language: studiedLanguage,
       sentence: sentence,

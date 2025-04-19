@@ -91,7 +91,7 @@ export class ExerciseRepository {
       WHERE language = ? AND level_number = ?
     `).all(language, levelNumber) as Topic[];
     const grades = this.db.prepare(`
-      SELECT eg.id, eg.grade
+      SELECT e.id, eg.grade
       FROM exercise e
       JOIN exercise_grammar eg ON eg.exercise_id = e.id
       WHERE e.user_id = ?
@@ -117,7 +117,7 @@ export class ExerciseRepository {
       WHERE language = ? AND level_number = ?
     `).all(language, levelNumber) as Topic[];
     const grades = this.db.prepare(`
-      SELECT eg.id, ev.grade
+      SELECT e.id, ev.grade
       FROM exercise e
       JOIN exercise_vocabulary ev ON ev.exercise_id = e.id
       WHERE e.user_id = ?

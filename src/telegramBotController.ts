@@ -2,17 +2,27 @@ import TelegramBot from 'node-telegram-bot-api';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
 import { ExerciseService } from './exerciseService';
+import { User, UserRepository } from './userRepository';
 
 export class TelegramBotController {
 
   constructor(
     private telegramBotClient: TelegramBotClient,
+    private userRepository: UserRepository,
     private chatStateRepository: ChatStateRepository,
     private exerciseService: ExerciseService
   ) { }
 
   // Handle /start command
   public start(msg: TelegramBot.Message) {
+    const username = msg.chat.username;
+    if (username === undefined) {
+      return;
+    }
+    const user = this.userRepository.getUser(username);
+    if (user === undefined) {
+      this.userRepository.saveUser({ username });
+    }
     const chatId = msg.chat.id;
     this.telegramBotClient.sendMessage(chatId,
       'Welcome to Lalang, a chatbot for learning a foreign language.\n\n' +
@@ -25,16 +35,18 @@ export class TelegramBotController {
   public async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     if (!query.data) return;
     const chatId = query.message?.chat.id;
-    if (!chatId) return;
-
+    const username = query.message?.chat.username;
+    if (!chatId || !username) return;
     if (query.data === 'give_task') {
-      await this.handleExerciseRequest(chatId);
+      const user = this.userRepository.getUser(username);
+      if (!user) return;
+      await this.handleExerciseRequest(user, chatId);
       this.telegramBotClient.answerCallbackQuery(query);
     }
   }
 
-  private async handleExerciseRequest(chatId: number): Promise<void> {
-    const exercise = await this.exerciseService.createExercise(chatId);
+  private async handleExerciseRequest(user: User, chatId: number): Promise<void> {
+    const exercise = await this.exerciseService.createExercise(user);
     this.chatStateRepository.saveChatState({
       chat_id: chatId,
       exercise_id: exercise.id

@@ -1,3 +1,12 @@
+CREATE TABLE IF NOT EXISTS user (
+  id INTEGER PRIMARY KEY,
+  username TEXT NOT NULL,
+  native_language TEXT,
+  studied_language TEXT,
+  level_number INTEGER,
+  UNIQUE(username)
+);
+
 CREATE TABLE IF NOT EXISTS chat_state (
   chat_id INTEGER PRIMARY KEY,
   exercise_id INTEGER,

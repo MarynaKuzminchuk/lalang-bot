@@ -10,6 +10,7 @@ import { ChatStateRepository } from './chatStateRepository';
 import { Topic, TopicsRepository } from './topicsRepository';
 import { ExerciseRepository } from './exerciseRepository';
 import { ExerciseService } from './exerciseService';
+import { UserRepository } from './userRepository';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ const db = new Database('database.sqlite');
 const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
 db.exec(createDbSchemaScript);
 
+const userRepository = new UserRepository(db);
 const topicsRepository = new TopicsRepository(db);
 const grammarJsonData = readFileSync('db/grammar.json', 'utf-8');
 const grammarTopics = JSON.parse(grammarJsonData) as Topic[];
@@ -46,7 +48,7 @@ if (!telegramBotToken) {
 const bot = new TelegramBot(telegramBotToken, { polling: true });
 const telegramBotClient = new TelegramBotClient(bot);
 
-const telegramBotController = new TelegramBotController(telegramBotClient, chatStateRepository, exerciseService);
+const telegramBotController = new TelegramBotController(telegramBotClient, userRepository, chatStateRepository, exerciseService);
 bot.onText(/\/start/, (msg) => {
   telegramBotController.start(msg);
 });
@@ -58,9 +60,13 @@ bot.on('message', async (msg) => {
 });
 console.log('Telegram bot has been started via Long Polling');
 
-exerciseService.createExercise(1).then(result => {
-  console.log(JSON.stringify(result));
-  exerciseService.evaluateExercise(result.id, "bla").then(evaluationResult => {
-    console.log(evaluationResult);
-  })
-});
+userRepository.saveUser({username: "test"});
+const user = userRepository.getUser("test");
+if (user) {
+  exerciseService.createExercise(user).then(result => {
+    console.log(JSON.stringify(result));
+    exerciseService.evaluateExercise(result.id, "bla").then(evaluationResult => {
+      console.log(evaluationResult);
+    })
+  });
+}
