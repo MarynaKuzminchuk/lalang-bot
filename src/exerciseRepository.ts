@@ -12,13 +12,13 @@ export class ExerciseRepository {
     `).run(exercise.user_id, exercise.sentence, exercise.native_language, exercise.studied_language).lastInsertRowid as number;
     for (const grammarTopic of exercise.grammar_topics) {
       this.db.prepare(`
-        INSERT INTO exercise_grammar (exercise_id, grammar_id)
+        INSERT INTO exercise_topic (exercise_id, topic_id)
         VALUES (?, ?)
       `).run(exerciseId, grammarTopic.id);
     }
     for (const vocabularyTopic of exercise.vocabulary_topics) {
       this.db.prepare(`
-        INSERT INTO exercise_vocabulary (exercise_id, vocabulary_id)
+        INSERT INTO exercise_topic (exercise_id, topic_id)
         VALUES (?, ?)
       `).run(exerciseId, vocabularyTopic.id);
     }
@@ -36,17 +36,17 @@ export class ExerciseRepository {
     `).get(exerciseId) as Omit<Exercise, "grammar_topics" | "vocabulary_topics">;
 
     const grammarTopics = this.db.prepare(`
-      SELECT g.id, g.language, g.name, g.level, g.level_number
-      FROM grammar g
-      JOIN exercise_grammar eg ON eg.grammar_id = g.id
-      WHERE eg.exercise_id = ?
+      SELECT t.id, t.type, t.language, t.name, t.level, t.level_number
+      FROM topic t
+      JOIN exercise_topic et ON et.topic_id = t.id
+      WHERE et.exercise_id = ? AND t.type = 'grammar'
     `).all(exerciseId) as GradedTopic[];
 
     const vocabularyTopics = this.db.prepare(`
-      SELECT v.id, v.language, v.name, v.level, v.level_number
-      FROM vocabulary v
-      JOIN exercise_vocabulary ev ON ev.vocabulary_id = v.id
-      WHERE ev.exercise_id = ?
+      SELECT t.id, t.type, t.language, t.name, t.level, t.level_number
+      FROM topic t
+      JOIN exercise_topic et ON et.topic_id = t.id
+      WHERE et.exercise_id = ? AND t.type = 'vocabulary'
     `).all(exerciseId) as GradedTopic[];
 
     return {
@@ -66,9 +66,9 @@ export class ExerciseRepository {
     if (exercise.grammar_topics) {
       exercise.grammar_topics.forEach((grammarTopic) => {
         this.db.prepare(`
-          UPDATE exercise_grammar
+          UPDATE exercise_topic
           SET grade = ?
-          WHERE exercise_id = ? AND grammar_id = ?
+          WHERE exercise_id = ? AND topic_id = ?
         `).run(grammarTopic.grade, exercise.id, grammarTopic.id);
       });
     }
@@ -76,9 +76,9 @@ export class ExerciseRepository {
     if (exercise.vocabulary_topics) {
       exercise.vocabulary_topics.forEach((vocabularyTopic) => {
         this.db.prepare(`
-          UPDATE exercise_vocabulary
+          UPDATE exercise_topic
           SET grade = ?
-          WHERE exercise_id = ? AND vocabulary_id = ?
+          WHERE exercise_id = ? AND topic_id = ?
         `).run(vocabularyTopic.grade, exercise.id, vocabularyTopic.id);
       });
     }
@@ -86,14 +86,14 @@ export class ExerciseRepository {
 
   public getGradedGrammarTopics(userId: number, language: string, levelNumber: number): TopicWithGrades[] {
     const topics = this.db.prepare(`
-      SELECT id, language, name, level, level_number
-      FROM grammar
-      WHERE language = ? AND level_number = ?
+      SELECT id, type, language, name, level, level_number
+      FROM topic
+      WHERE language = ? AND level_number = ? AND type = 'grammar'
     `).all(language, levelNumber) as Topic[];
     const grades = this.db.prepare(`
-      SELECT e.id, eg.grade
+      SELECT e.id, et.grade
       FROM exercise e
-      JOIN exercise_grammar eg ON eg.exercise_id = e.id
+      JOIN exercise_topic et ON et.exercise_id = e.id
       WHERE e.user_id = ?
     `).all(userId) as TopicGrade[];
     const gradeMap = new Map<number, number[]>();
@@ -112,14 +112,14 @@ export class ExerciseRepository {
 
   public getGradedVocabularyTopics(userId: number, language: string, levelNumber: number): TopicWithGrades[] {
     const topics = this.db.prepare(`
-      SELECT id, language, name, level, level_number
-      FROM vocabulary
-      WHERE language = ? AND level_number = ?
+      SELECT id, type, language, name, level, level_number
+      FROM topic
+      WHERE language = ? AND level_number = ? AND type = 'vocabulary'
     `).all(language, levelNumber) as Topic[];
     const grades = this.db.prepare(`
-      SELECT e.id, ev.grade
+      SELECT e.id, et.grade
       FROM exercise e
-      JOIN exercise_vocabulary ev ON ev.exercise_id = e.id
+      JOIN exercise_topic et ON et.exercise_id = e.id
       WHERE e.user_id = ?
     `).all(userId) as TopicGrade[];
     const gradeMap = new Map<number, number[]>();

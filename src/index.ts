@@ -7,7 +7,7 @@ import Database from 'better-sqlite3';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
-import { Topic, TopicsRepository } from './topicsRepository';
+import { Topic, TopicsRepository, TopicType } from './topicsRepository';
 import { ExerciseRepository } from './exerciseRepository';
 import { ExerciseService } from './exerciseService';
 import { UserRepository } from './userRepository';
@@ -29,12 +29,12 @@ db.exec(createDbSchemaScript);
 
 const userRepository = new UserRepository(db);
 const topicsRepository = new TopicsRepository(db);
-const grammarJsonData = readFileSync('db/grammar.json', 'utf-8');
-const grammarTopics = JSON.parse(grammarJsonData) as Topic[];
-topicsRepository.saveGrammarTopics(grammarTopics);
-const vocabularyJsonData = readFileSync('db/vocabulary.json', 'utf-8');
-const vocabularyTopics = JSON.parse(vocabularyJsonData) as Topic[];
-topicsRepository.saveVocabularyTopics(vocabularyTopics);
+const grammarJsonData = readFileSync('db/data/grammar.json', 'utf-8');
+const grammarTopics = (JSON.parse(grammarJsonData) as Topic[]).map(topic => {return {...topic, type: TopicType.GRAMMAR}});
+topicsRepository.saveTopics(grammarTopics);
+const vocabularyJsonData = readFileSync('db/data/vocabulary.json', 'utf-8');
+const vocabularyTopics = (JSON.parse(vocabularyJsonData) as Topic[]).map(topic => {return {...topic, type: TopicType.VOCABULARY}});;
+topicsRepository.saveTopics(vocabularyTopics);
 
 const chatStateRepository = new ChatStateRepository(db);
 const exerciseRepository = new ExerciseRepository(db);

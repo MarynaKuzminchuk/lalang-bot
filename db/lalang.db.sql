@@ -13,17 +13,9 @@ CREATE TABLE IF NOT EXISTS chat_state (
   UNIQUE(chat_id)
 );
 
-CREATE TABLE IF NOT EXISTS grammar (
+CREATE TABLE IF NOT EXISTS topic (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  language TEXT NOT NULL,
-  name TEXT NOT NULL,
-  level TEXT NOT NULL,
-  level_number INTEGER NOT NULL,
-  UNIQUE(language, name, level)
-);
-
-CREATE TABLE IF NOT EXISTS vocabulary (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
   language TEXT NOT NULL,
   name TEXT NOT NULL,
   level TEXT NOT NULL,
@@ -41,20 +33,11 @@ CREATE TABLE IF NOT EXISTS exercise (
   studied_language TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS exercise_grammar (
+CREATE TABLE IF NOT EXISTS exercise_topic (
   exercise_id INTEGER NOT NULL,
-  grammar_id INTEGER NOT NULL,
+  topic_id INTEGER NOT NULL,
   grade INTEGER,
-  PRIMARY KEY (exercise_id, grammar_id),
+  PRIMARY KEY (exercise_id, topic_id),
   FOREIGN KEY (exercise_id) REFERENCES exercise(id),
-  FOREIGN KEY (grammar_id) REFERENCES grammar(id)
-);
-
-CREATE TABLE IF NOT EXISTS exercise_vocabulary (
-  exercise_id INTEGER NOT NULL,
-  vocabulary_id INTEGER NOT NULL,
-  grade INTEGER,
-  PRIMARY KEY (exercise_id, vocabulary_id),
-  FOREIGN KEY (exercise_id) REFERENCES exercise(id),
-  FOREIGN KEY (vocabulary_id) REFERENCES vocabulary(id)
+  FOREIGN KEY (topic_id) REFERENCES topic(id)
 );
