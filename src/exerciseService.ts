@@ -31,29 +31,36 @@ export class ExerciseService {
     });
   }
 
-  public async evaluateExercise(exerciseId: number, translation: string): Promise<string> {
+  public async evaluateExercise(exerciseId: number, translation: string): Promise<Evaluation> {
     const exercise = this.exerciseRepository.getExercise(exerciseId);
     console.log(JSON.stringify(exercise));
     const check = await this.chatGptService.checkTranslation(exercise, translation);
     const parsedCheck = JSON.parse(check);
+    const gradedGrammarTopics = exercise.grammar_topics.map(grammarTopic => {
+      return {
+        ...grammarTopic,
+        grade: parsedCheck.grammar_grades[grammarTopic.name]
+      }
+    });
+    const gradedVocabularyTopics = exercise.vocabulary_topics.map(vocabularyTopic => {
+      return {
+        ...vocabularyTopic,
+        grade: parsedCheck.vocabulary_grades[vocabularyTopic.name]
+      }
+    });
     this.exerciseRepository.updateExercise({
       id: exercise.id,
       translation: translation,
       correct_translation: parsedCheck.correct_translation,
-      grammar_topics: exercise.grammar_topics.map(grammarTopic => {
-        return {
-          ...grammarTopic,
-          grade: parsedCheck.grammar_grades[grammarTopic.name]
-        }
-      }),
-      vocabulary_topics: exercise.vocabulary_topics.map(vocabularyTopic => {
-        return {
-          ...vocabularyTopic,
-          grade: parsedCheck.vocabulary_grades[vocabularyTopic.name]
-        }
-      })
+      grammar_topics: gradedGrammarTopics,
+      vocabulary_topics: gradedVocabularyTopics
     });
-    return check;
+    return {
+      correct_translation: parsedCheck.correct_translation,
+      explanation: parsedCheck.explanation,
+      graded_grammar_topics: gradedGrammarTopics,
+      graded_vocabulary_topics: gradedVocabularyTopics
+    };
   }
 }
 
@@ -67,4 +74,11 @@ export interface Exercise {
   correct_translation?: string;
   grammar_topics: GradedTopic[];
   vocabulary_topics: GradedTopic[];
+}
+
+export interface Evaluation {
+  correct_translation: string,
+  explanation: string,
+  graded_grammar_topics: GradedTopic[],
+  graded_vocabulary_topics: GradedTopic[]
 }

@@ -17,8 +17,8 @@ export class ChatGPTService {
   }
 
   public async checkTranslation(exercise: Exercise, translation: string): Promise<string> {
-    const grammarTopics = exercise.grammar_topics.map(grammarTopic => grammarTopic.name).join(",");
-    const vocabularyTopics = exercise.vocabulary_topics.map(vocabularyTopic => vocabularyTopic.name).join(",");
+    const grammarTopics = exercise.grammar_topics.map(grammarTopic => `"${grammarTopic.name}"`).join(",");
+    const vocabularyTopics = exercise.vocabulary_topics.map(vocabularyTopic => `"${vocabularyTopic.name}"`).join(",");
     const prompt = `
       You are a strict language teacher.
       Your task is to evaluate the translation.
@@ -27,7 +27,7 @@ export class ChatGPTService {
       Specifically checking grammar topics: ${grammarTopics} and vocabulary topics: ${vocabularyTopics}.
       Return evaluation result in the following JSON format:
       {
-        correct_translation: "coorect translation of the given sentence from ${exercise.native_language} to ${exercise.studied_language}",
+        correct_translation: "correct translation of the given sentence from ${exercise.native_language} to ${exercise.studied_language}",
         grammar_grades: {"grammar topic name": int_grade_from_1_to_5},
         vocabulary_grades: {"vocabulary topic name": int_grade_from_1_to_5},
         explanation: "use this text to explain the ${exercise.native_language} speaker in his language what are the mistakes"

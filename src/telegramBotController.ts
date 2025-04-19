@@ -58,20 +58,12 @@ export class TelegramBotController {
 
     const chatState = this.chatStateRepository.getChatState(chatId);
     if (chatState && chatState.exercise_id) {
-      const analysis = await this.exerciseService.evaluateExercise(chatState.exercise_id, text);
+      const evaluation = await this.exerciseService.evaluateExercise(chatState.exercise_id, text);
       this.chatStateRepository.saveChatState({
         ...chatState,
         exercise_id: undefined
       });
-      const [
-        messageToStudent,
-        correctedVersion,
-        correctGrammar,
-        incorrectGrammar,
-        correctVocabulary,
-        incorrectVocabulary
-      ] = analysis.split('---');
-      await this.telegramBotClient.sendMessage(chatId, messageToStudent);
+      await this.telegramBotClient.sendMessage(chatId, `Correct translation: ${evaluation.correct_translation}\nExplanation: ${evaluation.explanation}`);
       this.telegramBotClient.sendTaskButton(chatId);
     }
   }
