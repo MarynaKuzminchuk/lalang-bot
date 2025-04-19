@@ -1,12 +1,11 @@
 import { ChatGPTService } from "./chatgptService";
 import { ExerciseRepository } from "./exerciseRepository";
-import { Topic, TopicsRepository } from "./topicsRepository";
+import { Topic } from "./topicsRepository";
 
 export class ExerciseService {
 
   constructor(
     private chatGptService: ChatGPTService,
-    private topicsRepository: TopicsRepository,
     private exerciseRepository: ExerciseRepository
   ) { }
 
@@ -14,10 +13,10 @@ export class ExerciseService {
     const nativeLanguage = "Russian";
     const studiedLanguage = "German";
     const levelNumber = 6;
-    const grammarTopics = this.topicsRepository.getGrammarTopics(studiedLanguage, levelNumber);
-    const vocabularyTopics = this.topicsRepository.getVocabularyTopics(studiedLanguage, levelNumber);
-    const selectedGrammarTopic = grammarTopics[Math.floor(Math.random() * grammarTopics.length)];
-    const selectedVocabularyTopic = vocabularyTopics[Math.floor(Math.random() * vocabularyTopics.length)];
+    const grammarTopics = this.exerciseRepository.getGradedGrammarTopics(userId, studiedLanguage, levelNumber);
+    const vocabularyTopics = this.exerciseRepository.getGradedVocabularyTopics(userId, studiedLanguage, levelNumber);
+    const selectedGrammarTopic = this.chooseTopic(grammarTopics);
+    const selectedVocabularyTopic = this.chooseTopic(vocabularyTopics);
     const sentence = await this.chatGptService.generateSentence(
       nativeLanguage, studiedLanguage, selectedGrammarTopic, selectedVocabularyTopic
     );
@@ -29,6 +28,26 @@ export class ExerciseService {
       grammar_topics: [selectedGrammarTopic],
       vocabulary_topics: [selectedVocabularyTopic]
     });
+  }
+
+  private chooseTopic(topics: TopicWithGrades[]): TopicWithGrades {
+    const base = 100 / topics.length;
+  
+    const weights = topics.map(({ grades }) => {
+      let score = base;
+      for (const grade of grades) {
+        score += grade >= 4 ? 1 : -1;
+      }
+      return Math.max(1, score);
+    });
+  
+    const total = weights.reduce((s, x) => s + x, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < topics.length; i++) {
+      r -= weights[i];
+      if (r < 0) return topics[i];
+    }
+    return topics[topics.length - 1];
   }
 
   public async evaluateExercise(exerciseId: number, translation: string): Promise<Evaluation> {
@@ -85,4 +104,8 @@ export interface Evaluation {
 
 export interface GradedTopic extends Topic {
   grade?: number;
+}
+
+export interface TopicWithGrades extends Topic {
+  grades: number[];
 }

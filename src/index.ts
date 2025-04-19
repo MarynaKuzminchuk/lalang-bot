@@ -37,7 +37,7 @@ topicsRepository.saveVocabularyTopics(vocabularyTopics);
 const chatStateRepository = new ChatStateRepository(db);
 const exerciseRepository = new ExerciseRepository(db);
 
-const exerciseService = new ExerciseService(chatGptService, topicsRepository, exerciseRepository);
+const exerciseService = new ExerciseService(chatGptService, exerciseRepository);
 
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!telegramBotToken) {
