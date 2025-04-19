@@ -1,6 +1,5 @@
 import { ChatGPTService } from "./chatgptService";
 import { ExerciseRepository } from "./exerciseRepository";
-import { Topic } from "./topicsRepository";
 import { User } from "./userRepository";
 
 export class ExerciseService {
@@ -14,8 +13,9 @@ export class ExerciseService {
     const nativeLanguage = user.native_language ?? "Russian";
     const studiedLanguage = user.studied_language ?? "German";
     const levelNumber = user.level_number ?? 1;
-    const grammarTopics = this.exerciseRepository.getGradedGrammarTopics(user.id, studiedLanguage, levelNumber);
-    const vocabularyTopics = this.exerciseRepository.getGradedVocabularyTopics(user.id, studiedLanguage, levelNumber);
+    const gradedTopics = this.exerciseRepository.getGradedTopics(user.id, studiedLanguage, levelNumber);
+    const grammarTopics = gradedTopics.filter(topic => topic.type === TopicType.GRAMMAR);
+    const vocabularyTopics = gradedTopics.filter(topic => topic.type === TopicType.VOCABULARY);
     const selectedGrammarTopic = this.chooseTopic(grammarTopics);
     const selectedVocabularyTopic = this.chooseTopic(vocabularyTopics);
     const sentence = await this.chatGptService.generateSentence(
@@ -33,7 +33,7 @@ export class ExerciseService {
 
   private chooseTopic(topics: TopicWithGrades[]): TopicWithGrades {
     const base = 100 / topics.length;
-  
+
     const weights = topics.map(({ grades }) => {
       let score = base;
       for (const grade of grades) {
@@ -41,7 +41,7 @@ export class ExerciseService {
       }
       return Math.max(1, score);
     });
-  
+
     const total = weights.reduce((s, x) => s + x, 0);
     let r = Math.random() * total;
     for (let i = 0; i < topics.length; i++) {
@@ -55,6 +55,7 @@ export class ExerciseService {
     const exercise = this.exerciseRepository.getExercise(exerciseId);
     console.log(JSON.stringify(exercise));
     const check = await this.chatGptService.checkTranslation(exercise, translation);
+    console.log(check);
     const parsedCheck = JSON.parse(check);
     const gradedGrammarTopics = exercise.grammar_topics.map(grammarTopic => {
       return {
@@ -101,6 +102,20 @@ export interface Evaluation {
   explanation: string,
   graded_grammar_topics: GradedTopic[],
   graded_vocabulary_topics: GradedTopic[]
+}
+
+export interface Topic {
+  id: number;
+  type: TopicType;
+  language: string;
+  name: string;
+  level: string;
+  level_number: number;
+}
+
+export enum TopicType {
+  GRAMMAR = 'grammar',
+  VOCABULARY = 'vocabulary'
 }
 
 export interface GradedTopic extends Topic {

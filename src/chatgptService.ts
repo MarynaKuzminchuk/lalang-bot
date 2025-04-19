@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
-import { Topic } from './topicsRepository';
-import { Exercise } from './exerciseService';
+import { Exercise, Topic } from './exerciseService';
 
 export class ChatGPTService {
 
@@ -13,6 +12,7 @@ export class ChatGPTService {
       and vocabulary topic "${selectedVocabularyTopic.name} of ${selectedVocabularyTopic.level} level".
       Just output the sentence directly.
     `.trim();
+    console.log(prompt);
     return await this.generateGPTRequest(prompt);
   }
 

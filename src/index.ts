@@ -1,15 +1,14 @@
 import dotenv from 'dotenv';
-import { TelegramBotController } from './telegramBotController';
-import TelegramBot from 'node-telegram-bot-api';
 import OpenAI from 'openai';
-import { ChatGPTService } from './chatgptService';
 import Database from 'better-sqlite3';
+import TelegramBot from 'node-telegram-bot-api';
+import { TelegramBotController } from './telegramBotController';
+import { ChatGPTService } from './chatgptService';
 import { readFileSync } from 'fs';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
-import { Topic, TopicsRepository, TopicType } from './topicsRepository';
 import { ExerciseRepository } from './exerciseRepository';
-import { ExerciseService } from './exerciseService';
+import { ExerciseService, Topic, TopicType } from './exerciseService';
 import { UserRepository } from './userRepository';
 
 dotenv.config();
@@ -28,16 +27,13 @@ const createDbSchemaScript = readFileSync('db/lalang.db.sql', 'utf-8');
 db.exec(createDbSchemaScript);
 
 const userRepository = new UserRepository(db);
-const topicsRepository = new TopicsRepository(db);
-const grammarJsonData = readFileSync('db/data/grammar.json', 'utf-8');
-const grammarTopics = (JSON.parse(grammarJsonData) as Topic[]).map(topic => {return {...topic, type: TopicType.GRAMMAR}});
-topicsRepository.saveTopics(grammarTopics);
-const vocabularyJsonData = readFileSync('db/data/vocabulary.json', 'utf-8');
-const vocabularyTopics = (JSON.parse(vocabularyJsonData) as Topic[]).map(topic => {return {...topic, type: TopicType.VOCABULARY}});;
-topicsRepository.saveTopics(vocabularyTopics);
-
-const chatStateRepository = new ChatStateRepository(db);
 const exerciseRepository = new ExerciseRepository(db);
+const grammarJsonData = readFileSync('db/data/grammar.json', 'utf-8');
+const grammarTopics = (JSON.parse(grammarJsonData) as Topic[]).map(topic => { return { ...topic, type: TopicType.GRAMMAR } });
+const vocabularyJsonData = readFileSync('db/data/vocabulary.json', 'utf-8');
+const vocabularyTopics = (JSON.parse(vocabularyJsonData) as Topic[]).map(topic => { return { ...topic, type: TopicType.VOCABULARY } });;
+exerciseRepository.saveTopics([...grammarTopics, ...vocabularyTopics]);
+const chatStateRepository = new ChatStateRepository(db);
 
 const exerciseService = new ExerciseService(chatGptService, exerciseRepository);
 
@@ -60,7 +56,7 @@ bot.on('message', async (msg) => {
 });
 console.log('Telegram bot has been started via Long Polling');
 
-userRepository.saveUser({username: "test"});
+userRepository.saveUser({ username: "test" });
 const user = userRepository.getUser("test");
 if (user) {
   exerciseService.createExercise(user).then(result => {
