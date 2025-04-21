@@ -82,6 +82,19 @@ export class ExerciseService {
       graded_vocabulary_topics: gradedVocabularyTopics
     };
   }
+
+  public getStats(userId: number, studiedLanguage: string, levelNumber: number): TopicWithGradesStats[] {
+    const gradedTopics = this.exerciseRepository.getGradedTopics(userId, studiedLanguage, levelNumber);
+    return gradedTopics.map(({ grades, ...topic }) => {
+      const grades_count = grades.length;
+      const grades_avg = grades_count === 0 ? 0 : grades.reduce((sum, g) => sum + g, 0) / grades_count;
+      return {
+        ...topic,
+        grades_avg,
+        grades_count,
+      };
+    });
+  }
 }
 
 export interface Exercise {
@@ -123,4 +136,9 @@ export interface GradedTopic extends Topic {
 
 export interface TopicWithGrades extends Topic {
   grades: number[];
+}
+
+export interface TopicWithGradesStats extends Topic {
+  grades_avg: number;
+  grades_count: number;
 }

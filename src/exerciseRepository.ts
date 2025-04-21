@@ -68,16 +68,16 @@ export class ExerciseRepository {
     `).all(language, levelNumber) as Topic[];
 
     const grades = this.db.prepare(`
-      SELECT e.id, et.grade
+      SELECT et.topic_id, et.grade
       FROM exercise e
       JOIN exercise_topic et ON et.exercise_id = e.id
       WHERE e.user_id = ?
     `).all(userId) as TopicGrade[];
     const gradeMap = new Map<number, number[]>();
-    for (const { id, grade } of grades) {
-      const list = gradeMap.get(id) ?? [];
+    for (const { topic_id, grade } of grades) {
+      const list = gradeMap.get(topic_id) ?? [];
       list.push(grade);
-      gradeMap.set(id, list);
+      gradeMap.set(topic_id, list);
     }
 
     return topics.map(topic => {
@@ -100,6 +100,6 @@ export class ExerciseRepository {
 }
 
 interface TopicGrade {
-  id: number;
+  topic_id: number;
   grade: number;
 }

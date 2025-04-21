@@ -1,7 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { TelegramBotClient } from './telegramBotClient';
 import { ChatStateRepository } from './chatStateRepository';
-import { ExerciseService } from './exerciseService';
+import { ExerciseService, TopicType, TopicWithGradesStats } from './exerciseService';
 import { User, UserRepository } from './userRepository';
 
 const WELCOME_MESSAGE = 'Добро пожаловать в чат для изучения иностранных языков!';
@@ -30,41 +30,68 @@ export class TelegramBotController {
       console.log("Create new user");
       this.userRepository.saveUser({ username, native_language: "Russian" });
       this.telegramBotClient.sendMessageWithOptions(chatId, `${WELCOME_MESSAGE}\n${CHOOSE_STUDIED_LANGUAGE_MESSAGE}`, [
-        { text: 'Английский', callback_data: JSON.stringify({studied_language: "English"}) },
-        { text: 'Немецкий', callback_data: JSON.stringify({studied_language: "German"}) },
-        { text: 'Голландский', callback_data: JSON.stringify({studied_language: "Dutch"}) }
+        { text: 'Английский', callback_data: JSON.stringify({ studied_language: "English" }) },
+        { text: 'Немецкий', callback_data: JSON.stringify({ studied_language: "German" }) },
+        { text: 'Голландский', callback_data: JSON.stringify({ studied_language: "Dutch" }) }
       ]);
     } else {
       console.log("Interact with existing user");
       this.telegramBotClient.sendMessageWithOptions(chatId, `С возвращеньем!`, [
-        { text: 'Получить задание', callback_data: JSON.stringify({request_exercise: true}) }
+        { text: 'Получить следующее задание', callback_data: JSON.stringify({ request_exercise: true }) }
       ]);
     }
   }
 
   public selectStudiedLanguage(chatId: number) {
     this.telegramBotClient.sendMessageWithOptions(chatId, CHOOSE_STUDIED_LANGUAGE_MESSAGE, [
-      { text: 'Английский', callback_data: JSON.stringify({studied_language: "English"}) },
-      { text: 'Немецкий', callback_data: JSON.stringify({studied_language: "German"}) },
-      { text: 'Голландский', callback_data: JSON.stringify({studied_language: "Dutch"}) }
+      { text: 'Английский', callback_data: JSON.stringify({ studied_language: "English" }) },
+      { text: 'Немецкий', callback_data: JSON.stringify({ studied_language: "German" }) },
+      { text: 'Голландский', callback_data: JSON.stringify({ studied_language: "Dutch" }) }
     ]);
   }
 
   public selectLanguageLevel(chatId: number) {
     this.telegramBotClient.sendMessageWithOptions(chatId, CHOOSE_LANGUAGE_LEVEL, [
-      { text: 'A1.1', callback_data: JSON.stringify({level_number: 1}) },
-      { text: 'A1.2', callback_data: JSON.stringify({level_number: 2}) },
-      { text: 'A2.1', callback_data: JSON.stringify({level_number: 3}) },
-      { text: 'A2.2', callback_data: JSON.stringify({level_number: 4}) },
-      { text: 'B1.1', callback_data: JSON.stringify({level_number: 5}) },
-      { text: 'B1.2', callback_data: JSON.stringify({level_number: 6}) },
-      { text: 'B2.1', callback_data: JSON.stringify({level_number: 7}) },
-      { text: 'B2.2', callback_data: JSON.stringify({level_number: 8}) },
-      { text: 'C1.1', callback_data: JSON.stringify({level_number: 9}) },
-      { text: 'C1.2', callback_data: JSON.stringify({level_number: 10}) },
-      { text: 'C2.1', callback_data: JSON.stringify({level_number: 11}) },
-      { text: 'C2.2', callback_data: JSON.stringify({level_number: 12}) },
+      { text: 'A1.1', callback_data: JSON.stringify({ level_number: 1 }) },
+      { text: 'A1.2', callback_data: JSON.stringify({ level_number: 2 }) },
+      { text: 'A2.1', callback_data: JSON.stringify({ level_number: 3 }) },
+      { text: 'A2.2', callback_data: JSON.stringify({ level_number: 4 }) },
+      { text: 'B1.1', callback_data: JSON.stringify({ level_number: 5 }) },
+      { text: 'B1.2', callback_data: JSON.stringify({ level_number: 6 }) },
+      { text: 'B2.1', callback_data: JSON.stringify({ level_number: 7 }) },
+      { text: 'B2.2', callback_data: JSON.stringify({ level_number: 8 }) },
+      { text: 'C1.1', callback_data: JSON.stringify({ level_number: 9 }) },
+      { text: 'C1.2', callback_data: JSON.stringify({ level_number: 10 }) },
+      { text: 'C2.1', callback_data: JSON.stringify({ level_number: 11 }) },
+      { text: 'C2.2', callback_data: JSON.stringify({ level_number: 12 }) },
     ]);
+  }
+
+  public getStats(msg: TelegramBot.Message) {
+    const username = msg.chat.username ?? `${msg.chat.first_name}_${msg.chat.last_name}` ?? `${msg.chat.id}`;
+    if (!username) return;
+    const user = this.userRepository.getUser(username);
+    if (!user || !user.studied_language || user.level_number === undefined) return;
+    const stats = this.exerciseService.getStats(user.id, user.studied_language, user.level_number);
+    const grammarTopicsStats = stats.filter(stat => stat.type === TopicType.GRAMMAR && stat.grades_count > 0);
+    const vocabularyTopicsStats = stats.filter(stat => stat.type === TopicType.VOCABULARY && stat.grades_count > 0);
+    const message = this.formatGradesStatsMessage(grammarTopicsStats, vocabularyTopicsStats);
+    this.telegramBotClient.sendMessageWithOptions(msg.chat.id, message, [
+      { text: 'Получить следующее задание', callback_data: JSON.stringify({ request_exercise: true }) }
+    ]);
+  }
+
+  private formatGradesStatsMessage(grammarTopicsStats: TopicWithGradesStats[], vocabularyTopicsStats: TopicWithGradesStats[]) {
+    return grammarTopicsStats.length === 0 || vocabularyTopicsStats.length === 0
+      ? "Пока ещё нет данных"
+      : "Грамматика: средняя оценка (количество упражнений)\n" +
+      grammarTopicsStats.map(this.formatGradeStat).join("\n") + "\n\n" +
+      "Слованый запас: средняя оценка (количество упражнений)\n" +
+      vocabularyTopicsStats.map(this.formatGradeStat).join("\n");
+  }
+
+  private formatGradeStat(stat: TopicWithGradesStats) {
+    return `${stat.name}: ` + `${stat.grades_avg} (${stat.grades_count})`;
   }
 
   // Handle callback queries (e.g., button clicks)
@@ -76,16 +103,16 @@ export class TelegramBotController {
     const user = this.userRepository.getUser(username);
     if (!user) return;
     if (queryData.studied_language) {
-      this.userRepository.saveUser({...user, studied_language: queryData.studied_language});
+      this.userRepository.saveUser({ ...user, studied_language: queryData.studied_language });
       this.selectLanguageLevel(chatId);
     } else if (queryData.level_number) {
       const previousLevelNumber = user.level_number;
-      this.userRepository.saveUser({...user, level_number: queryData.level_number});
+      this.userRepository.saveUser({ ...user, level_number: queryData.level_number });
       if (previousLevelNumber) {
         this.handleExerciseRequest(user, chatId);
       } else {
         this.telegramBotClient.sendMessageWithOptions(chatId, FIRST_EXERCISE, [
-          { text: 'Получить первое задание', callback_data: JSON.stringify({request_exercise: true}) }
+          { text: 'Получить первое задание', callback_data: JSON.stringify({ request_exercise: true }) }
         ]);
       }
     } else if (queryData.request_exercise) {
@@ -101,7 +128,7 @@ export class TelegramBotController {
       exercise_id: exercise.id
     });
     this.telegramBotClient.sendMessageWithOptions(chatId, `${exercise.sentence}`, [
-      { text: 'Хочу другое задание', callback_data: JSON.stringify({request_exercise: true}) }
+      { text: 'Хочу другое задание', callback_data: JSON.stringify({ request_exercise: true }) }
     ]);
   }
 
@@ -118,7 +145,7 @@ export class TelegramBotController {
         exercise_id: undefined
       });
       await this.telegramBotClient.sendMessageWithOptions(chatId, `Правильный перевод: ${evaluation.correct_translation}\n\nРазбор: ${evaluation.explanation}\n\nГрамматика: ${evaluation.graded_grammar_topics[0].grade}/5\nСловарный запас: ${evaluation.graded_vocabulary_topics[0].grade}/5`, [
-        { text: 'Следующее задание', callback_data: JSON.stringify({request_exercise: true}) }
+        { text: 'Следующее задание', callback_data: JSON.stringify({ request_exercise: true }) }
       ]);
     }
   }
