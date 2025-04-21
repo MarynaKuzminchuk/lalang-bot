@@ -11,3 +11,10 @@ npx ts-node
 import db from './src/database';
 console.log(db.prepare("SELECT * FROM translations").all());
 .exit
+```
+
+## Lint
+
+```bash
+npx eslint .
+```

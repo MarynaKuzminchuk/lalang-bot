@@ -49,7 +49,7 @@ bot.setMyCommands([
   { command: "/language", description: "Выбрать язык" },
   { command: "/level", description: "Выбрать уровень" },
   { command: "/stats", description: "Статистика" }
-]).then(_ => {
+]).finally(() => {
   bot.onText(/\/start/, (msg) => {
     telegramBotController.start(msg);
   });

@@ -20,7 +20,7 @@ export class TelegramBotController {
   // Handle /start command
   public start(msg: TelegramBot.Message) {
     console.log("Received start");
-    const username = msg.chat.username ?? `${msg.chat.first_name}_${msg.chat.last_name}` ?? `${msg.chat.id}`;
+    const username = this.parseUsername(msg);
     if (username === undefined) {
       return;
     }
@@ -68,7 +68,7 @@ export class TelegramBotController {
   }
 
   public getStats(msg: TelegramBot.Message) {
-    const username = msg.chat.username ?? `${msg.chat.first_name}_${msg.chat.last_name}` ?? `${msg.chat.id}`;
+    const username = this.parseUsername(msg);
     if (!username) return;
     const user = this.userRepository.getUser(username);
     if (!user || !user.studied_language || user.level_number === undefined) return;
@@ -97,7 +97,7 @@ export class TelegramBotController {
   // Handle callback queries (e.g., button clicks)
   public async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     const chatId = query.message?.chat.id;
-    const username = query.message?.chat.username ?? `${query.message?.chat.first_name}_${query.message?.chat.last_name}` ?? `${query.message?.chat.id}`;
+    const username = this.parseUsername(query.message);
     if (!chatId || !username || !query.data) return;
     const queryData = JSON.parse(query.data);
     const user = this.userRepository.getUser(username);
@@ -119,6 +119,10 @@ export class TelegramBotController {
       await this.handleExerciseRequest(user, chatId);
       this.telegramBotClient.answerCallbackQuery(query);
     }
+  }
+
+  private parseUsername(msg?: TelegramBot.Message) {
+    return msg?.chat.username ?? (msg?.chat.first_name && msg.chat.last_name ? `${msg.chat.first_name}_${msg.chat.last_name}` : `${msg?.chat.id}`)
   }
 
   private async handleExerciseRequest(user: User, chatId: number): Promise<void> {
